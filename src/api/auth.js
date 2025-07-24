@@ -9,7 +9,7 @@ export const authApi = {
 
     // 登录（JSON格式）
     login(data) {
-        return request.post('/auth/login', data)
+        return request.postForm('/system/user/login', data)
     },
 
     // 登录（FormData格式）

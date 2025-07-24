@@ -33,19 +33,19 @@ service.interceptors.response.use(
     response => {
         // 对响应数据做点什么
         const { data } = response
-
         // 假设后端返回格式为 { code: 200, message: 'success', data: {} }
-        if (data.code === 200) {
+        if (data.success === true && data.code === 0) {
             return data.data
         } else {
-            ElMessage.error(data.message || '请求失败')
+            console.log(data)
+            // ElMessage.error(data.message || '请求失111败')
             return Promise.reject(new Error(data.message || '请求失败'))
         }
     },
     error => {
         // 对响应错误做点什么
         console.error('Response error:', error)
-
+        debugger
         if (error.response) {
             const { status, data } = error.response
 

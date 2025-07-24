@@ -85,7 +85,7 @@ const login = async () => {
     }
     
     const loginData = {
-      phone: phone.value,
+      mobile: phone.value,
       code: code.value
     }
     
@@ -95,7 +95,7 @@ const login = async () => {
     if (result.token) {
       localStorage.setItem('token', result.token)
       ElMessage.success('登录成功')
-      router.push('/')
+      router.push('/index')
     }
   } catch (error) {
     console.error('登录失败:', error)

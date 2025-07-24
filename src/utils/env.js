@@ -4,6 +4,9 @@ export const env = {
     get apiBaseUrl() {
         return import.meta.env.VITE_API_BASE_URL || '/api'
     },
+    get webBaseUrl() {
+        return import.meta.env.VITE_WEB_BASE_URL
+    },
 
     // 应用标题
     get appTitle() {

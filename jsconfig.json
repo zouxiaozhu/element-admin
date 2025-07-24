@@ -1,0 +1,49 @@
+{
+    "compilerOptions": {
+        "target": "es2020",
+        "module": "esnext",
+        "moduleResolution": "node",
+        "strict": true,
+        "jsx": "preserve",
+        "sourceMap": true,
+        "resolveJsonModule": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "src/*"
+            ],
+            "@c/*": [
+                "src/components/*"
+            ],
+            "@api/*": [
+                "src/api/*"
+            ],
+            "@utils/*": [
+                "src/utils/*"
+            ],
+            "@store/*": [
+                "src/store/*"
+            ],
+            "@layout/*": [
+                "src/layout/*"
+            ],
+            "@views/*": [
+                "src/views/*"
+            ],
+            "@web/*": [
+                "src/web/*"
+            ]
+        }
+    },
+    "include": [
+        "src/**/*",
+        "vite.config.js",
+        "src/types/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}
