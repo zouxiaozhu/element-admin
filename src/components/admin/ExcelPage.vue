@@ -285,25 +285,57 @@ function handlePageChange(val: number) {
 const searchForm = ref({
   name: '',
   status: '',
-  startTime: '',
-  endTime: ''
+  startTime: null as Date | null,
+  endTime: null as Date | null
 })
 
+// 使用服务端搜索，不再需要客户端过滤
 const filteredTasks = computed(() => {
-  return tasks.value.filter(task => {
-    const nameMatch = !searchForm.value.name || task.name.includes(searchForm.value.name)
-    const statusMatch = !searchForm.value.status || task.status === searchForm.value.status
-    const startMatch = !searchForm.value.startTime || (task.startTime && task.startTime >= searchForm.value.startTime)
-    const endMatch = !searchForm.value.endTime || (task.endTime && task.endTime <= searchForm.value.endTime)
-    return nameMatch && statusMatch && startMatch && endMatch
-  })
+  return tasks.value
 })
 
 function handleSearch() {
-  // 这里只需触发 filteredTasks 计算属性即可
+  // 格式化时间参数
+  const formatTime = (timeValue: any) => {
+    if (!timeValue) return null
+    if (timeValue instanceof Date) {
+      const year = timeValue.getFullYear()
+      const month = String(timeValue.getMonth() + 1).padStart(2, '0')
+      const day = String(timeValue.getDate()).padStart(2, '0')
+      const hours = String(timeValue.getHours()).padStart(2, '0')
+      const minutes = String(timeValue.getMinutes()).padStart(2, '0')
+      const seconds = String(timeValue.getSeconds()).padStart(2, '0')
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    }
+    return timeValue
+  }
+
+  // 构建搜索参数
+  const searchParams = {
+    name: searchForm.value.name,
+    status: searchForm.value.status,
+    startTime: formatTime(searchForm.value.startTime),
+    endTime: formatTime(searchForm.value.endTime),
+    page: page.value.current,
+    size: page.value.size
+  }
+
+  console.log('搜索参数:', searchParams) // 调试信息
+  
+  // 调用API进行搜索
+  getExcelFileList(searchParams).then(res => {
+    tasks.value = res?.data?.records || []
+    total.value = res?.data?.total || 0
+    ElMessage.success('搜索完成')
+  }).catch(error => {
+    console.error('搜索失败:', error)
+    ElMessage.error('搜索失败，请重试')
+  })
 }
 function handleReset() {
-  searchForm.value = { name: '', status: '', startTime: '', endTime: '' }
+  searchForm.value = { name: '', status: '', startTime: null, endTime: null }
+  // 重新获取所有数据
+  fetchTasks()
 }
 function statusType(status: string) {
   switch (status) {
@@ -516,7 +548,7 @@ async function parseExcel() {
     uploadedFile.value = null // 清空上传文件状态
     uploadRef.value?.clearFiles() // 清空文件列表
     fetchTasks() // 刷新任务列表
-  } catch ( error) {
+  } catch (error: any) {
     console.error('解析失败:', error)
     ElMessage.error(error.message || 'Excel解析失败，请重试')
   }
