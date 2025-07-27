@@ -174,7 +174,8 @@ const tableColumns = computed(() => {
   // 从第一行数据中获取所有列名
   const firstRow = searchResults.value[0]
   if (!firstRow) return []
-  return Object.keys(firstRow)
+  // 过滤掉内部字段（以下划线开头的字段）
+  return Object.keys(firstRow).filter(key => !key.startsWith('_'))
 })
 
 // 方法
@@ -193,8 +194,7 @@ const loadExcelData = async () => {
     console.log('API 返回数据:', response) // 调试信息
     
     // 检查 API 返回格式
-    if (response.success && response.data && Array.isArray(response.data)) {
-      excelMetaData.value = response.data
+      excelMetaData.value = response
       
       console.log('提取的列名:', uniqueColumns.value) // 调试信息
       
@@ -205,11 +205,6 @@ const loadExcelData = async () => {
       })
       
       ElMessage.success(`数据加载成功，发现 ${uniqueColumns.value.length} 个字段`)
-    } else {
-      const errorMsg = response.message || '获取数据失败'
-      errorMessage.value = errorMsg
-      throw new Error(errorMsg)
-    }
   } catch (error) {
     console.error('加载数据失败:', error)
     errorMessage.value = error.message || '加载数据失败，请检查文件编码是否正确'
@@ -221,13 +216,9 @@ const loadExcelData = async () => {
 }
 
 const handleSearch = async () => {
-  // 检查是否有搜索条件
-  const hasSearchCondition = Object.values(searchForm.value).some(value => value && value.trim())
-  if (!hasSearchCondition) {
-    ElMessage.warning('请至少输入一个搜索条件')
-    return
-  }
-
+  // 移除空值检查，允许所有参数（包括空值）传递到后端
+  // 这样后端可以接收到完整的搜索表单数据，包括空字段
+  
   searching.value = true
   try {
     // 构建搜索参数
@@ -237,14 +228,16 @@ const handleSearch = async () => {
       ...searchForm.value
     }
     
-    const response = await searchExcelData(searchParams)
+    console.log('发送搜索参数:', searchParams) // 调试信息
     
-    console.log('搜索结果:', response) // 调试信息
+    const responseData = await searchExcelData(searchParams)
     
-    // 检查 API 返回格式
-    if (response.success && response.data) {
-      // 将按行分组的数据重新组织成表格格式
-      const processedData = processSearchResults(response.data)
+    console.log('搜索结果:', responseData) // 调试信息
+    
+    // request.js已经处理了响应格式，直接使用返回的数据数组
+    if (Array.isArray(responseData)) {
+      // 将数据转换为表格格式
+      const processedData = processSearchResults(responseData)
       searchResults.value = processedData
       
       if (processedData.length === 0) {
@@ -253,7 +246,7 @@ const handleSearch = async () => {
         ElMessage.success(`找到 ${processedData.length} 条匹配数据`)
       }
     } else {
-      throw new Error(response.message || '搜索失败')
+      throw new Error('返回数据格式错误')
     }
   } catch (error) {
     console.error('搜索失败:', error)
@@ -263,23 +256,28 @@ const handleSearch = async () => {
   }
 }
 
-// 处理搜索结果，将按行分组的数据转换为表格格式
+// 处理搜索结果，将新的数据格式转换为表格格式
 const processSearchResults = (rawData) => {
   if (!Array.isArray(rawData) || rawData.length === 0) return []
   
-  // 按行号分组
-  const groupedByRow = {}
-  
-  rawData.forEach(item => {
-    const rowLine = item.rowLine
-    if (!groupedByRow[rowLine]) {
-      groupedByRow[rowLine] = {}
+  // 处理新的数据格式
+  const result = rawData.map(item => {
+    const row = {}
+    
+    // 从 columnData 对象中提取每列的值
+    if (item.columnData && typeof item.columnData === 'object') {
+      Object.keys(item.columnData).forEach(columnName => {
+        const columnInfo = item.columnData[columnName]
+        // 提取 columnValue 作为单元格的值
+        row[columnName] = columnInfo?.columnValue || ''
+      })
     }
-    groupedByRow[rowLine][item.columnKey] = item.columnValue
+    
+    // 可选：保留行号信息用于调试或其他用途
+    row.行号 = item.rowLine
+    
+    return row
   })
-  
-  // 转换为数组格式
-  const result = Object.values(groupedByRow)
   
   console.log('处理后的搜索结果:', result) // 调试信息
   return result
@@ -332,7 +330,8 @@ const exportResults = async () => {
 const convertToCSV = (data) => {
   if (data.length === 0) return ''
   
-  const headers = Object.keys(data[0])
+  // 过滤掉内部字段（以下划线开头的字段）
+  const headers = Object.keys(data[0]).filter(key => !key.startsWith('_'))
   const csvRows = [headers.join(',')]
   
   data.forEach(row => {

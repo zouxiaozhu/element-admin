@@ -1,16 +1,10 @@
 // Excel 相关 API 服务
-import { env } from '@/utils/env.js'
-const BASE_URL = env.apiBaseUrl
 import request from '@/utils/request'
 
 // 获取 Excel 元数据
 export const getExcelMetaData = async (fileCoding) => {
     try {
-        const response = await fetch(`${BASE_URL}/excel/meta?fileCoding=${fileCoding}`)
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        const data = await response.json()
+        const data = await request.get(`/excel/meta?fileCoding=${fileCoding}`)
         return data // 直接返回完整响应，包含 success, code, msg, data
     } catch (error) {
         console.error('获取 Excel 元数据失败:', error)
@@ -24,12 +18,13 @@ export const searchExcelData = async (params) => {
         // 构建新的请求参数格式
         const searchQueries = []
 
-        // 从搜索表单中提取有效的搜索条件
+        // 从搜索表单中提取所有搜索条件（包括空值）
         Object.entries(params).forEach(([columnKey, columnValue]) => {
-            if (columnKey !== 'file_coding' && columnKey !== 'logic' && columnValue && columnValue.trim()) {
+            // 排除特殊的控制参数，其他所有字段都传递给后端
+            if (columnKey !== 'file_coding' && columnKey !== 'logic') {
                 searchQueries.push({
                     columnKey: columnKey,
-                    columnValue: columnValue.trim()
+                    columnValue: columnValue || '' // 空值转换为空字符串
                 })
             }
         })
@@ -42,18 +37,7 @@ export const searchExcelData = async (params) => {
 
         console.log('搜索请求参数:', requestBody) // 调试信息
 
-        const response = await fetch(`${BASE_URL}/excel/searchRows`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody)
-        })
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`)
-        }
-        const data = await response.json()
+        const data = await request.post('/excel/searchRows', requestBody)
         return data // 直接返回完整响应，包含 success, code, msg, data
     } catch (error) {
         console.error('搜索 Excel 数据失败:', error)
@@ -62,14 +46,34 @@ export const searchExcelData = async (params) => {
 }
 
 // 获取 Excel 文件列表
-export const getExcelFileList = async (page) => {
+export const getExcelFileList = async (params) => {
     try {
+        // 构建查询参数
+        const queryParams = new URLSearchParams()
 
-        const response = await fetch(`${BASE_URL}/excel/excelFileList?page=${page.page}&size=${page.size}`)
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`)
+        // 基础分页参数
+        if (params.page !== undefined) {
+            queryParams.append('page', params.page)
         }
-        const data = await response.json()
+        if (params.size !== undefined) {
+            queryParams.append('size', params.size)
+        }
+
+        // 搜索参数
+        if (params.name) {
+            queryParams.append('name', params.name)
+        }
+        if (params.status) {
+            queryParams.append('status', params.status)
+        }
+        if (params.startTime) {
+            queryParams.append('startTime', params.startTime)
+        }
+        if (params.endTime) {
+            queryParams.append('endTime', params.endTime)
+        }
+
+        const data = await request.get(`/excel/excelFileList?${queryParams.toString()}`)
         return data
     } catch (error) {
         console.error('获取 Excel 文件列表失败:', error)

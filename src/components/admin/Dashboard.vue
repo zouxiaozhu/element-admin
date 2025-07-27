@@ -1,65 +1,303 @@
 <template>
   <div class="dashboard">
-    <h2>系统大盘</h2>
-    <div class="summary-cards">
-      <div class="card">
-        <div class="card-title">Excel数量</div>
-        <div class="card-value">123</div>
-      </div>
-      <div class="card">
-        <div class="card-title">上次登录</div>
-        <div class="card-value">2024-05-01 12:34</div>
-      </div>
-      <!-- 可继续添加更多概要信息 -->
+    <div class="dashboard-header">
+      <h2>系统概览</h2>
+      <p>Excel解析</p>
+    </div>
+    
+    <!-- 统计卡片 -->
+    <div class="stats-grid">
+      <el-card class="stat-card" shadow="hover">
+        <div class="stat-content">
+          <div class="stat-icon excel">
+            <el-icon size="32"><Document /></el-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.todayCount }}次</h3>
+            <p>今日解析Excel次数</p>
+          </div>
+        </div>
+      </el-card>
+      
+      <el-card class="stat-card" shadow="hover">
+        <div class="stat-content">
+          <div class="stat-icon processing">
+            <el-icon size="32"><Loading /></el-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.thisWeekCount }}次</h3>
+            <p>本周解析Excel次数</p>
+          </div>
+        </div>
+      </el-card>
+      
+      <el-card class="stat-card" shadow="hover">
+        <div class="stat-content">
+          <div class="stat-icon users">
+            <el-icon size="32"><User /></el-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.totalCount }}次</h3>
+            <p>累计解析Excel次数</p>
+          </div>
+        </div>
+      </el-card>
+      
+      <el-card class="stat-card" shadow="hover">
+        <div class="stat-content">
+          <div class="stat-icon storage">
+            <el-icon size="32"><FolderOpened /></el-icon>
+          </div>
+          <div class="stat-info">
+            <h3>{{ stats.totalSizeInMb }}MB</h3>
+            <p>Excel存储使用量</p>
+          </div>
+        </div>
+      </el-card>
+    </div>
+    
+    <!-- 快速操作 -->
+    <div class="quick-actions">
+      <el-card class="action-card" shadow="hover">
+        <template #header>
+          <div class="card-header">
+            <span>快速操作</span>
+          </div>
+        </template>
+        <div class="actions-grid">
+          <el-button type="primary" size="large" @click="goToExcel">
+            <el-icon><Upload /></el-icon>
+            上传Excel文件
+          </el-button>
+          <el-button type="success" size="large" @click="goToAnalysis">
+            <el-icon><DataAnalysis /></el-icon>
+            数据分析
+          </el-button>
+          <el-button type="info" size="large" @click="goToUsers">
+            <el-icon><User /></el-icon>
+            用户管理
+          </el-button>
+          <el-button type="warning" size="large" @click="goToSettings">
+            <el-icon><Setting /></el-icon>
+            系统设置
+          </el-button>
+        </div>
+      </el-card>
+    </div>
+    
+    <!-- 最近活动 -->
+    <div class="recent-activity">
+      <el-card class="activity-card" shadow="hover">
+        <template #header>
+          <div class="card-header">
+            <span>最近活动</span>
+            <el-button type="text" size="small">查看全部</el-button>
+          </div>
+        </template>
+        <el-timeline>
+          <el-timeline-item
+            v-for="activity in recentActivities"
+            :key="activity.id"
+            :timestamp="activity.time"
+            :type="activity.type"
+          >
+            {{ activity.description }}
+          </el-timeline-item>
+        </el-timeline>
+      </el-card>
     </div>
   </div>
 </template>
-<script setup lang="ts"></script>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { Document, Loading, User, FolderOpened, Upload, DataAnalysis, Setting } from '@element-plus/icons-vue'
+import { dashboardApi } from '@/api/dashboard'
+
+interface Stats {
+  totalCount: number
+  todayCount: number
+  thisWeekCount: number
+  totalSizeInMb: string
+}
+
+interface Activity {
+  id: number
+  description: string
+  time: string
+  type: 'primary' | 'success' | 'warning' | 'danger' | 'info'
+}
+
+const stats = ref<Stats>({
+  totalCount: 0,
+  todayCount: 0,
+  thisWeekCount: 0,
+  totalSizeInMb: '0'
+})
+
+const recentActivities = ref<Activity[]>([
+  { id: 1, description: '用户上传了新的Excel文件', time: '2024-01-15 10:30', type: 'primary' },
+  { id: 2, description: 'Excel文件解析完成', time: '2024-01-15 10:15', type: 'success' },
+  { id: 3, description: '系统配置已更新', time: '2024-01-15 09:45', type: 'info' },
+  { id: 4, description: '新用户注册', time: '2024-01-15 09:20', type: 'success' }
+])
+
+const emit = defineEmits<{
+  (e: 'menu-select', index: string): void
+}>()
+
+const goToExcel = () => {
+  emit('menu-select', 'excel')
+}
+
+const goToAnalysis = () => {
+  emit('menu-select', 'analytics')
+}
+
+const goToUsers = () => {
+  emit('menu-select', 'users')
+}
+
+const goToSettings = () => {
+  emit('menu-select', 'system-config')
+}
+
+// 模拟加载统计数据
+const loadStats = () => {
+  dashboardApi.dashBoardSummary().then(res => {
+    stats.value = res
+  })
+}
+
+onMounted(() => {
+  loadStats()
+})
+</script>
+
 <style scoped>
 .dashboard {
-  padding: 24px;
+  padding: 20px;
 }
-.summary-cards {
-  display: flex;
-  gap: 32px;
-  margin-top: 24px;
-  flex-wrap: wrap;
+
+.dashboard-header {
+  margin-bottom: 32px;
 }
-.card {
-  background: linear-gradient(135deg, #eaf3ff 0%, #fff 100%);
-  border-radius: 18px;
-  box-shadow: 0 4px 24px rgba(64,158,255,0.10);
-  padding: 32px 40px;
-  min-width: 200px;
-  text-align: center;
-  transition: box-shadow 0.2s, transform 0.2s;
-  cursor: pointer;
-}
-.card:hover {
-  box-shadow: 0 8px 32px rgba(64,158,255,0.18);
-  transform: translateY(-4px) scale(1.04);
-}
-.card-title {
-  font-size: 18px;
-  color: #888;
-  margin-bottom: 12px;
+
+.dashboard-header h2 {
+  margin: 0 0 8px 0;
+  color: #303133;
+  font-size: 28px;
   font-weight: 600;
 }
-.card-value {
-  font-size: 34px;
-  font-weight: bold;
-  color: #409eff;
-  letter-spacing: 1px;
-  text-shadow: 0 2px 8px rgba(64,158,255,0.10);
+
+.dashboard-header p {
+  margin: 0;
+  color: #909399;
+  font-size: 16px;
 }
-@media (max-width: 900px) {
-  .summary-cards {
-    flex-direction: column;
-    gap: 18px;
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  border-radius: 12px;
+  transition: transform 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.stat-icon.excel {
+  background: linear-gradient(135deg, #409eff 0%, #66b3ff 100%);
+}
+
+.stat-icon.processing {
+  background: linear-gradient(135deg, #e6a23c 0%, #f0c444 100%);
+}
+
+.stat-icon.users {
+  background: linear-gradient(135deg, #67c23a 0%, #85ce61 100%);
+}
+
+.stat-icon.storage {
+  background: linear-gradient(135deg, #f56c6c 0%, #f78989 100%);
+}
+
+.stat-info h3 {
+  margin: 0 0 4px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #303133;
+}
+
+.stat-info p {
+  margin: 0;
+  font-size: 14px;
+  color: #909399;
+}
+
+.quick-actions {
+  margin-bottom: 32px;
+}
+
+.action-card {
+  border-radius: 12px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.recent-activity {
+  margin-bottom: 32px;
+}
+
+.activity-card {
+  border-radius: 12px;
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 16px;
   }
-  .card {
-    padding: 18px 12px;
-    min-width: 120px;
+  
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style> 

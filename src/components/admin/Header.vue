@@ -1,121 +1,172 @@
 <template>
   <header class="top-navbar">
-    <div class="left">
-      <img class="logo" src="/logo.png" alt="logo" />
-      <span class="system-name">企业管理平台</span>
+    <div class="navbar-left">
+      <div class="logo">
+        <img src="/logo.svg" alt="Logo" class="logo-img" />
+        <span class="logo-text">Excel管理系统</span>
+      </div>
     </div>
-    <div class="right">
-      <ThemeSwitch v-model="isDark" />
-      <el-icon class="icon-btn"><Setting /></el-icon>
-      <div class="user-info-content">
-        <img class="avatar" :src="user.avatar" alt="用户头像" />
-        <span class="username">{{ user.name }}</span>
+    
+    <div class="navbar-right">
+      <div class="user-info">
+        <el-dropdown @command="handleCommand">
+          <span class="el-dropdown-link">
+            <el-avatar :size="32" :src="userAvatar" />
+            <span class="username">{{ username }}</span>
+            <el-icon class="el-icon--right"><arrow-down /></el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="profile">个人资料</el-dropdown-item>
+              <el-dropdown-item command="settings">系统设置</el-dropdown-item>
+              <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </div>
   </header>
 </template>
 
 <script lang="ts" setup>
-import { ref, watch } from 'vue'
-import { Setting } from '@element-plus/icons-vue'
-// 主题切换组件
-const ThemeSwitch = {
-  props: ['modelValue'],
-  emits: ['update:modelValue'],
-  template: `<el-switch :model-value="modelValue" @change="$emit('update:modelValue', $event)" active-text="🌙" inactive-text="☀️" />`
-}
-const user = ref({
-  name: '张三',
-  avatar: 'https://i.pravatar.cc/48?img=3'
+import { ref, computed, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { ArrowDown } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
+import { getUserInfo, logout } from '@/utils/auth.js'
+
+const router = useRouter()
+const userInfo = ref(null)
+
+const userAvatar = computed(() => {
+  return userInfo.value?.avatar || 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
 })
-const isDark = ref(false)
-watch(isDark, val => {
-  document.body.classList.toggle('dark', val)
+
+const username = computed(() => {
+  return userInfo.value?.nickName ||  userInfo.value?.userName
+})
+
+// 定义 emits
+const emit = defineEmits(['menu-select'])
+
+const handleCommand = (command: string) => {
+  switch (command) {
+    case 'profile':
+      // 发送菜单切换事件到Layout
+      emit('menu-select', 'profile')
+      break
+    case 'settings':
+      ElMessage.info('系统设置功能开发中...')
+      break
+    case 'logout':
+      handleLogout()
+      break
+  }
+}
+
+const handleLogout = () => {
+  ElMessageBox.confirm(
+    '确定要退出登录吗？',
+    '提示',
+    {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }
+  ).then(() => {
+    // 执行登出
+    logout()
+    ElMessage.success('退出登录成功')
+    // 跳转到登录页
+    router.push('/login')
+  }).catch(() => {
+    // 用户取消
+  })
+}
+
+// 初始化用户信息
+onMounted(() => {
+  userInfo.value = getUserInfo()
 })
 </script>
 
 <style scoped>
 .top-navbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  height: 64px;
-  background: linear-gradient(90deg, rgba(64,158,255,0.85) 0%, rgba(32,45,64,0.85) 100%);
-  color: var(--header-text, #fff);
-  box-shadow: 0 4px 24px 0 rgba(64,158,255,0.08);
-  padding: 0 40px;
-  border-radius: 0 0 18px 0;
-  backdrop-filter: blur(8px);
+  align-items: center;
+  padding: 0 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 1000;
 }
-.left {
+
+.navbar-left {
   display: flex;
   align-items: center;
 }
+
 .logo {
-  width: 40px;
-  height: 40px;
-  margin-right: 14px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(64,158,255,0.12);
-}
-.system-name {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  color: #fff;
-  text-shadow: 0 2px 8px rgba(64,158,255,0.12);
-}
-.right {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 12px;
 }
-.icon-btn {
-  font-size: 26px;
+
+.logo-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  position: relative;
+}
+
+.el-dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
   cursor: pointer;
-  transition: color 0.2s, transform 0.2s;
-  color: #fff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
 }
-.icon-btn:hover {
-  color: #ffd04b;
-  transform: scale(1.15) rotate(-10deg);
+
+.el-dropdown-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
-.user-info-content {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(255,255,255,0.12);
-  border-radius: 20px;
-  padding: 6px 18px 6px 10px;
-  box-shadow: 0 2px 8px rgba(64,158,255,0.08);
-  border: 1.5px solid rgba(255,255,255,0.18);
-}
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2.5px solid #ffd04b;
-  box-shadow: 0 2px 8px rgba(64,158,255,0.12);
-}
+
 .username {
-  font-size: 16px;
-  font-weight: 700;
-  color: #fff;
-  letter-spacing: 1px;
-  text-shadow: 0 1px 4px rgba(64,158,255,0.12);
+  font-size: 14px;
+  font-weight: 500;
 }
-:deep(.el-switch) {
-  --el-switch-on-color: #ffd04b;
-  --el-switch-off-color: #409eff;
-  transform: scale(1.2);
-}
-body.dark .top-navbar {
-  --header-bg: rgba(34,44,60,0.95);
-  --header-text: #fff;
-  --user-info-bg: rgba(45,58,75,0.85);
+
+@media (max-width: 768px) {
+  .top-navbar {
+    padding: 0 16px;
+  }
+  
+  .logo-text {
+    font-size: 16px;
+  }
+  
+  .username {
+    display: none;
+  }
 }
 </style> 

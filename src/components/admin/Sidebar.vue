@@ -1,75 +1,133 @@
 <template>
-  <div class="menu-container">
+  <aside class="sidebar">
     <el-menu
-      :default-active="activeMenu"
-      class="el-menu-vertical"
-      @select="handleMenuSelect"
-      background-color="var(--sidebar-bg, #222c3c)"
-      text-color="var(--sidebar-text, #fff)"
-      active-text-color="#ffd04b"
+      :default-active="props.activeMenu"
+      class="sidebar-menu"
+      background-color="#ffffff"
+      text-color="#606266"
+      active-text-color="#409eff"
+      @select="handleSelect"
     >
+      <el-menu-item index="dashboard">
+        <el-icon><House /></el-icon>
+        <span>仪表盘</span>
+      </el-menu-item>
+      
       <el-menu-item index="excel">
-        <el-icon><i class="el-icon-document" /></el-icon>
+        <el-icon><Document /></el-icon>
         <span>Excel管理</span>
       </el-menu-item>
-      <el-menu-item index="excel">
-        <el-icon><i class="el-icon-document" /></el-icon>
-        <span>Excel管理</span>
+      
+      <el-menu-item index="users">
+        <el-icon><User /></el-icon>
+        <span>用户管理</span>
       </el-menu-item>
-      <el-menu-item index="excel">
-        <el-icon><i class="el-icon-document" /></el-icon>
-        <span>Excel管理</span>
+      
+      <el-sub-menu index="system">
+        <template #title>
+          <el-icon><Setting /></el-icon>
+          <span>系统管理</span>
+        </template>
+        <el-menu-item index="system-config">系统配置</el-menu-item>
+        <el-menu-item index="system-logs">系统日志</el-menu-item>
+      </el-sub-menu>
+      
+      <el-menu-item index="analytics">
+        <el-icon><DataAnalysis /></el-icon>
+        <span>数据分析</span>
       </el-menu-item>
     </el-menu>
-  </div>
+  </aside>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from 'vue'
-const props = defineProps<{ activeMenu: string }>()
-const emit = defineEmits(['menu-select'])
-const handleMenuSelect = (index: string) => {
+import { House, Document, User, Setting, DataAnalysis } from '@element-plus/icons-vue'
+
+interface Props {
+  activeMenu?: string
+}
+
+interface Emits {
+  (e: 'menu-select', index: string): void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  activeMenu: 'dashboard'
+})
+
+const emit = defineEmits<Emits>()
+
+const handleSelect = (index: string) => {
   emit('menu-select', index)
 }
 </script>
 
 <style scoped>
-.menu-container {
-  width: 230px;
-  height: 100vh;
-  background: linear-gradient(180deg, rgba(34,44,60,0.98) 0%, rgba(64,158,255,0.12) 100%);
-  box-shadow: 6px 0 32px rgba(64,158,255,0.10);
-  border-right: 1.5px solid #222c3c;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.3s;
-  backdrop-filter: blur(8px);
+.sidebar {
+  width: 240px;
+  background: #ffffff;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  overflow-y: auto;
 }
-.el-menu-vertical {
+
+.sidebar-menu {
+  border: none;
+  height: 100%;
+  padding: 16px 0;
+}
+
+:deep(.el-menu-item) {
+  height: 48px;
+  line-height: 48px;
+  margin: 4px 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+:deep(.el-menu-item:hover) {
+  background-color: #f5f7fa !important;
+  color: #409eff !important;
+}
+
+:deep(.el-menu-item.is-active) {
+  background-color: #ecf5ff !important;
+  color: #409eff !important;
   border-right: none;
-  background: transparent;
 }
-.el-menu-item {
-  border-radius: 16px;
-  margin: 12px 16px;
-  transition: background 0.2s, color 0.2s, transform 0.2s;
-  font-size: 17px;
-  font-weight: 600;
-  letter-spacing: 1px;
-  padding: 14px 18px;
-  display: flex;
-  align-items: center;
+
+:deep(.el-sub-menu .el-sub-menu__title) {
+  height: 48px;
+  line-height: 48px;
+  margin: 4px 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
 }
-.el-menu-item .el-icon {
-  font-size: 22px;
-  margin-right: 10px;
+
+:deep(.el-sub-menu .el-sub-menu__title:hover) {
+  background-color: #f5f7fa !important;
+  color: #409eff !important;
 }
-.el-menu-item.is-active,
-.el-menu-item:hover {
-  background: linear-gradient(90deg, #409eff 0%, #ffd04b 100%) !important;
-  color: #fff !important;
-  transform: scale(1.04);
-  box-shadow: 0 2px 12px rgba(64,158,255,0.10);
+
+:deep(.el-sub-menu .el-menu-item) {
+  margin: 2px 24px;
+  padding-left: 32px !important;
+}
+
+:deep(.el-menu .el-icon) {
+  margin-right: 8px;
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px;
+  }
+  
+  :deep(.el-menu-item span) {
+    font-size: 14px;
+  }
 }
 </style>
 

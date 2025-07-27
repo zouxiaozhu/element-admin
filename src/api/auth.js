@@ -6,22 +6,13 @@ export const authApi = {
     sendSmsCode(phone) {
         return request.post('/auth/send-sms', { phone })
     },
-
     // 登录（JSON格式）
     login(data) {
-        return request.postForm('/system/user/login', data)
+        return request.post('/system/user/login', data)
     },
-
-    // 登录（FormData格式）
-    loginForm(data) {
-        return request.postForm('/auth/login', data)
+    register(data) {
+        return request.post('/system/user/register', data)
     },
-
-    // 登录（URL编码格式）
-    loginUrlencoded(data) {
-        return request.postUrlencoded('/auth/login', data)
-    },
-
     // 登出
     logout() {
         return request.post('/auth/logout')
@@ -35,5 +26,9 @@ export const authApi = {
     // 刷新token
     refreshToken() {
         return request.post('/auth/refresh-token')
+    },
+
+    updateUserInfo(data) {
+        return request.post('/system/user/update', data)
     }
 } 

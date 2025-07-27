@@ -98,7 +98,7 @@
           <el-descriptions-item label="任务ID">{{ currentTask.id }}</el-descriptions-item>
           <el-descriptions-item label="Excel文件">{{ currentTask.excelFile || currentTask.name }}</el-descriptions-item>
           <el-descriptions-item label="状态">{{ currentTask.status }}</el-descriptions-item>
-          <el-descriptions-item label="总行数">{{ detailRecords.length }}</el-descriptions-item>
+          <el-descriptions-item label="总行数">{{ currentTask.rowCount }}</el-descriptions-item>
         </el-descriptions>
         
         <div v-if="detailRecords.length > 0">
@@ -251,7 +251,6 @@ interface Task {
     headers?: string[];
     searchHeaders?: string[];
   };
-
 }
 
 interface DetailRecord {
@@ -269,8 +268,8 @@ const total = ref(0)
 
 async function fetchTasks() {
   const res = await getExcelFileList({ page: page.value.current, size: page.value.size })
-  tasks.value = res?.data?.records || []
-  total.value = res?.data?.total || 0
+  tasks.value = res?.records || []
+  total.value = res?.total || 0
 }
 
 onMounted(() => {
@@ -320,12 +319,12 @@ function handleSearch() {
     size: page.value.size
   }
 
-  console.log('搜索参数:', searchParams) // 调试信息
+  console.log('搜索参数:', searchParams) // 试信息
   
   // 调用API进行搜索
   getExcelFileList(searchParams).then(res => {
-    tasks.value = res?.data?.records || []
-    total.value = res?.data?.total || 0
+    tasks.value = res?.records || []
+    total.value = res?.total || 0
     ElMessage.success('搜索完成')
   }).catch(error => {
     console.error('搜索失败:', error)
@@ -689,8 +688,8 @@ function refreshData() {
   if (!currentTask.value) return
   
   getExcelFileDetail(currentTask.value.id, detailOffset.value, pageSize.value).then(r => {
-    detailRecords.value = r.data?.records || []
-    detailTotal.value = r.data?.total || 0
+    detailRecords.value = r?.records || []
+    detailTotal.value = r?.total || 0
     ElMessage.success('数据已刷新')
   }).catch(error => {
     ElMessage.error('刷新数据失败')

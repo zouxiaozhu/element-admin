@@ -1,0 +1,243 @@
+# Excel管理系统 - Cursor AI 提示词
+
+## 项目概述
+这是一个基于Vue 3 + Element Plus的Excel文件管理和解析系统，提供用户认证、文件上传、数据搜索和分析功能。
+
+## 技术栈
+- **前端框架**: Vue 3 (Composition API)
+- **UI库**: Element Plus
+- **构建工具**: Vite
+- **语言**: JavaScript/TypeScript
+- **路由**: Vue Router
+- **HTTP客户端**: Axios
+- **样式**: Scoped CSS + Element Plus主题
+
+## 项目结构
+```
+src/
+├── api/                    # API接口层
+│   ├── auth.js            # 认证相关接口
+│   ├── excel.js           # Excel相关接口  
+│   └── dashboard.js       # 仪表盘接口
+├── components/            # 组件
+│   ├── admin/             # 管理后台组件
+│   └── web/               # 前台组件
+├── router/                # 路由配置
+├── utils/                 # 工具函数
+│   ├── auth.js           # 认证工具
+│   ├── request.js        # HTTP请求封装
+│   └── env.js            # 环境配置
+├── assets/               # 静态资源
+└── types/                # TypeScript类型定义
+```
+
+## API响应格式规范
+所有API接口都应返回统一格式：
+```json
+{
+  "success": true,
+  "code": 0,
+  "message": "ok",
+  "data": {
+    "userInfo": { ... },
+    "tokenInfo": { ... }
+  }
+}
+```
+
+## 编码规范与最佳实践
+
+### Vue组件规范
+1. **使用Composition API**: 优先使用`<script setup>`语法
+2. **响应式数据**: 使用`ref()`和`reactive()`正确声明响应式数据
+3. **组件命名**: 使用PascalCase命名组件文件
+4. **Props验证**: 定义clear的props类型和默认值
+5. **样式作用域**: 使用`<style scoped>`避免样式污染
+
+### API调用规范
+1. **统一封装**: 所有API调用通过`src/api/`目录下的模块
+2. **错误处理**: 使用try-catch处理异步操作
+3. **loading状态**: UI操作时显示loading状态
+4. **响应验证**: 检查`response.success`确认操作成功
+
+### API响应数据获取
+
+#### 方式一：直接访问响应对象
+```javascript
+try {
+  const response = await authApi.login(data)
+  
+  // 获取各个字段
+  const success = response.success
+  const code = response.code || response.getCode?.()
+  const message = response.message || response.getMessage?.()
+  const data = response.data || response.getData?.()
+  const isSuccess = response.isSuccess ? response.isSuccess() : response.success === true
+} catch (error) {
+  // 错误对象包含详细信息
+  console.log('错误码:', error.code)
+  console.log('错误信息:', error.message)
+  console.log('错误数据:', error.data)
+  console.log('HTTP状态:', error.httpStatus)
+}
+```
+
+#### 方式二：使用辅助工具（推荐）
+```javascript
+import { handleApiCall, callWithSuccess } from '@/utils/apiHelper'
+
+// 标准调用
+const result = await handleApiCall(() => authApi.login(data))
+if (result.success) {
+  console.log('成功:', result.data, result.code, result.message)
+} else {
+  console.log('失败:', result.message, result.code)
+}
+
+// 成功时显示提示
+const result = await callWithSuccess(() => authApi.updateUser(data), '更新成功')
+```
+
+### 认证机制
+- **Token存储**: 使用localStorage/sessionStorage存储token
+- **自动跳转**: 未认证时自动跳转到登录页
+- **权限控制**: 基于用户角色控制页面访问
+
+### Excel功能特性
+- **文件上传**: 支持Excel文件上传和解析
+- **数据搜索**: 提供多条件搜索和逻辑操作
+- **列表管理**: 支持分页、排序、筛选
+- **状态管理**: 跟踪文件处理状态
+
+## 组件开发指导
+
+### 表单组件
+- 使用Element Plus表单组件
+- 实现表单验证规则
+- 提供清晰的错误提示
+- 支持loading和disabled状态
+
+```vue
+<template>
+  <el-form :model="form" :rules="rules" ref="formRef">
+    <el-form-item label="用户名" prop="username">
+      <el-input v-model="form.username" />
+    </el-form-item>
+  </el-form>
+</template>
+
+<script setup>
+import { ref, reactive } from 'vue'
+
+const formRef = ref()
+const form = reactive({
+  username: ''
+})
+
+const rules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' }
+  ]
+}
+</script>
+```
+
+### 列表组件
+- 使用Element Plus表格组件
+- 实现分页功能
+- 提供搜索和筛选
+- 支持批量操作
+
+### 上传组件
+- 使用Element Plus上传组件
+- 文件类型和大小验证
+- 上传进度显示
+- 错误处理和重试机制
+
+## 样式规范
+
+### CSS命名
+- 使用BEM命名规范
+- 组件内样式使用scoped
+- 全局样式放在App.vue或单独文件
+
+### 响应式设计
+- 使用Element Plus栅格系统
+- 移动端适配(max-width: 768px)
+- 合理的断点设置
+
+### 主题一致性
+- 遵循Element Plus设计语言
+- 统一的色彩方案和间距
+- 保持视觉一致性
+
+## 错误处理策略
+
+### API错误
+```javascript
+try {
+  const response = await api.getData()
+  if (!response.success) {
+    throw new Error(response.message)
+  }
+  // 处理成功响应
+} catch (error) {
+  ElMessage.error(error.message || '操作失败')
+}
+```
+
+### 全局错误处理
+- 在request.js中统一处理HTTP错误,其他地方无再次判断是否接口异常等信息，如果下游需要了解错误原因 可以在Error异常中携带信息
+- 401错误自动跳转登录
+- 显示用户友好的错误信息
+
+## 性能优化建议
+
+### 组件优化
+- 使用`v-show`代替`v-if`适合频繁切换的元素
+- 大列表使用虚拟滚动
+- 合理使用`computed`和`watch`
+
+### 网络优化
+- API请求去重和缓存
+- 图片懒加载
+- 合理的loading策略
+
+## 代码提交规范
+- feat: 新功能
+- fix: 修复bug
+- docs: 文档更新
+- style: 代码格式调整
+- refactor: 重构代码
+- test: 测试相关
+- chore: 构建过程或辅助工具变动
+
+## 开发注意事项
+
+1. **代码复用**: 提取公共组件和工具函数
+2. **类型安全**: 使用TypeScript提供类型检查
+3. **测试覆盖**: 为关键功能编写测试用例
+4. **文档维护**: 及时更新代码注释和文档
+5. **性能监控**: 关注页面加载时间和内存使用
+
+## 常用工具函数
+
+### 时间格式化
+```javascript
+const formatTime = (date) => {
+  return new Date(date).toLocaleString()
+}
+```
+
+### 文件大小格式化  
+```javascript
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+```
+
+当开发新功能时，请遵循上述规范，保持代码质量和项目一致性。 
