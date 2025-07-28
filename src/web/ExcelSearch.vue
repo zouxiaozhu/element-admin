@@ -3,7 +3,7 @@
     <!-- 页面标题 -->
     <div class="page-header">
       <div>
-        <h2>Excel 数据查询</h2>
+        <h2>{{fileName}}数据查询</h2>
         <p v-if="fileCoding" style="margin: 5px 0 0 0; color: #909399; font-size: 14px;">
           文件编码: {{ fileCoding }}
         </p>
@@ -151,6 +151,7 @@ import { getExcelMetaData, searchExcelData } from '@/api/excel'
 
 // 响应式数据
 const fileCoding = ref('')
+const fileName = ref('Excel')
 const excelMetaData = ref(null)
 const searchForm = ref({})
 const searchResults = ref([])
@@ -194,8 +195,9 @@ const loadExcelData = async () => {
     console.log('API 返回数据:', response) // 调试信息
     
     // 检查 API 返回格式
-      excelMetaData.value = response
-      
+      excelMetaData.value = response?.headers||[];
+      fileName.value = response?.fileInfo?.extendData?.aliasFileName ||  response?.fileInfo?.fileInfo?.fileName ||'Excel';
+      // fileName.value = response.fileInfo.excelParse
       console.log('提取的列名:', uniqueColumns.value) // 调试信息
       
       // 初始化搜索表单
