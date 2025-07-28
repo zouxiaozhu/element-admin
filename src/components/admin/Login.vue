@@ -431,7 +431,7 @@ onMounted(() => {
       </el-form>
       
               <div class="login-footer">
-          <div v-if="!isRegisterMode" class="demo-account">
+          <!-- <div v-if="!isRegisterMode" class="demo-account">
             <p>演示账号：admin / 123456</p>
             <p>或者：user1 / 123456</p>
             <div v-if="getSavedLoginInfo()" class="saved-info">
@@ -439,7 +439,7 @@ onMounted(() => {
                 清除记住的密码
               </el-link>
             </div>
-          </div>
+          </div> -->
           <div class="toggle-mode">
             <span>{{ isRegisterMode ? '已有账户？' : '没有账户？' }}</span>
             <el-link type="primary" :underline="false" @click="toggleMode">
