@@ -1,5 +1,8 @@
 import { register } from '@/utils/auth'
 import request from '@/utils/request'
+import axios from 'axios'
+import { apiBaseUrl } from '@/utils/env.js'
+import { getToken } from '@/utils/auth.js'
 
 // 认证相关接口
 export const dashboardApi = {
@@ -9,9 +12,17 @@ export const dashboardApi = {
     },
 
     uploadFile(file, businessType) {
+        // 直接使用axios，避免被request拦截器处理
         const formData = new FormData()
         formData.append('file', file)
-        const data = request.upload('/file/upload?businessType=' + businessType, file);
-        return data
+
+        return axios.post(apiBaseUrl + '/file/upload?businessType=' + businessType, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': `Bearer ${getToken()}`
+            }
+        }).then(response => {
+            return response.data
+        })
     }
 } 

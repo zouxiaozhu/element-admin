@@ -34,12 +34,7 @@
         <el-form-item label="任务名称">
           <el-input v-model="searchForm.name" placeholder="输入任务名称" clearable />
         </el-form-item>
-        <el-form-item label="开始时间">
-          <el-date-picker v-model="searchForm.startTime" type="date" placeholder="选择开始时间" clearable />
-        </el-form-item>
-        <el-form-item label="结束时间">
-          <el-date-picker v-model="searchForm.endTime" type="date" placeholder="选择结束时间" clearable />
-        </el-form-item>
+      
         <el-form-item>
           <el-button type="primary" @click="handleSearch">搜索</el-button>
           <el-button @click="handleReset">重置</el-button>
@@ -53,7 +48,7 @@
         <el-table-column prop="rowCount" label="行数" width="100"  align="center" />
         <el-table-column prop="status" label="状态" width="100"  align="center">
           <template #default="scope">
-            <el-tag :type="statusType(scope.row.status)">{{ scope.row.status }}</el-tag>
+            <el-tag :type="statusType(scope.row.status)">{{ scope.row.status == 'Enable'?"正常":"异常"}}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="200"  align="center" />
@@ -97,7 +92,7 @@
         <el-descriptions :column="4" border style="margin-bottom: 20px;">
           <el-descriptions-item label="任务ID">{{ currentTask.id }}</el-descriptions-item>
           <el-descriptions-item label="Excel文件">{{ currentTask.excelFile || currentTask.name }}</el-descriptions-item>
-          <el-descriptions-item label="状态">{{ currentTask.status }}</el-descriptions-item>
+          <el-descriptions-item label="状态">{{ currentTask.status == 'Enable'?"正常":"异常"}}</el-descriptions-item>
           <el-descriptions-item label="总行数">{{ currentTask.rowCount }}</el-descriptions-item>
         </el-descriptions>
         
@@ -338,11 +333,8 @@ function handleReset() {
 }
 function statusType(status: string) {
   switch (status) {
-    case '进行中': return 'success'
-    case '已完成': return 'info'
-    case '失败': return 'danger'
-    case '已暂停': return 'warning'
-    default: return ''
+    case 'Enable': return 'success'
+    default: return 'warning'
   }
 }
 

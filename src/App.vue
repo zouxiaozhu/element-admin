@@ -1,6 +1,5 @@
 <script setup>
-
-import Login from '@c/admin/Login.vue'
+// 移除错误的import，Login组件应该通过路由加载
 </script>
 <template>
   <router-view />

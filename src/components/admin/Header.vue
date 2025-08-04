@@ -8,6 +8,33 @@
     </div>
     
     <div class="navbar-right">
+
+      
+      <div class="contact-buttons">
+        <!-- 通知徽章 -->
+        <el-badge :value="unreadCount" :hidden="unreadCount === 0" class="notification-badge">
+          <el-button
+            type="warning"
+            size="small"
+            @click="showNotifications"
+            class="contact-btn"
+          >
+            <el-icon><Bell /></el-icon>
+            {{ unreadCount === 0 ? '我要反馈' : '我的反馈' }}
+          </el-button>
+        </el-badge>
+        
+
+        <el-button
+          type="info"
+          size="small"
+          @click="showHelp"
+          class="contact-btn"
+        >
+          <el-icon><QuestionFilled /></el-icon>
+          帮助
+        </el-button>
+      </div>
       <div class="user-info">
         <el-dropdown @command="handleCommand">
           <span class="el-dropdown-link">
@@ -29,14 +56,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ArrowDown } from '@element-plus/icons-vue'
+import { ArrowDown, QuestionFilled, Bell } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { getUserInfo, logout } from '@/utils/auth.js'
 
+
 const router = useRouter()
 const userInfo = ref(null)
+const unreadCount = ref(0)
 
 const userAvatar = computed(() => {
   return userInfo.value?.avatar || 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
@@ -46,22 +75,35 @@ const username = computed(() => {
   return userInfo.value?.nickName ||  userInfo.value?.userName
 })
 
-// 定义 emits
-const emit = defineEmits(['menu-select'])
-
 const handleCommand = (command: string) => {
   switch (command) {
     case 'profile':
-      // 发送菜单切换事件到Layout
-      emit('menu-select', 'profile')
+      router.push('/admin/profile')
       break
+
     case 'settings':
-      ElMessage.info('系统设置功能开发中...')
+      router.push('/admin/system-config')
       break
     case 'logout':
       handleLogout()
       break
   }
+}
+
+
+
+const showNotifications = () => {
+  // 跳转到我的反馈页面
+  router.push('/admin/my-feedback')
+}
+
+// 更新未读数量
+const updateUnreadCount = (count: number) => {
+  unreadCount.value = count
+}
+
+const showHelp = () => {
+  window.open('/help', '_blank')
 }
 
 const handleLogout = () => {
@@ -87,6 +129,26 @@ const handleLogout = () => {
 // 初始化用户信息
 onMounted(() => {
   userInfo.value = getUserInfo()
+  
+  // 监听用户信息变化（比如头像更新）
+  const handleUserInfoUpdate = () => {
+    userInfo.value = getUserInfo()
+  }
+  
+  // 监听未读数量更新事件
+  const handleUnreadCountUpdate = (event: CustomEvent) => {
+    updateUnreadCount(event.detail.count)
+  }
+  
+  // 监听自定义事件
+  window.addEventListener('user-info-updated', handleUserInfoUpdate)
+  window.addEventListener('update-unread-count', handleUnreadCountUpdate as EventListener)
+  
+  // 清理事件监听器
+  onUnmounted(() => {
+    window.removeEventListener('user-info-updated', handleUserInfoUpdate)
+    window.removeEventListener('update-unread-count', handleUnreadCountUpdate as EventListener)
+  })
 })
 </script>
 
@@ -130,6 +192,21 @@ onMounted(() => {
 .navbar-right {
   display: flex;
   align-items: center;
+  gap: 16px;
+}
+
+.contact-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.contact-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 6px 12px;
 }
 
 .user-info {
@@ -167,6 +244,19 @@ onMounted(() => {
   
   .username {
     display: none;
+  }
+  
+  .contact-buttons {
+    gap: 4px;
+  }
+  
+  .contact-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  
+  .contact-btn .el-icon {
+    font-size: 12px;
   }
 }
 </style> 

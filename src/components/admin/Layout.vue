@@ -1,110 +1,38 @@
 <template>
   <div class="layout-root">
-    <Header @menu-select="handleMenuSelect" />
+    <Header />
     <div class="main-area">
-      <Sidebar :activeMenu="activeMenu" @menu-select="handleMenuSelect" />
+      <Sidebar :activeMenu="activeMenu" />
       <div class="content-area">
-
-        <component :is="currentComponent" :key="componentKey" @menu-select="handleMenuSelect" />
+        <router-view />
       </div>
     </div>
+    
+    <!-- 悬浮球 -->
+    <FloatingBalls @feedback="showFeedbackDialog" />
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, watch } from 'vue'
+<script setup>
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import Header from './Header.vue'
 import Sidebar from './Sidebar.vue'
-import Dashboard from './Dashboard.vue'
-import ExcelPage from './ExcelPage.vue'
-import Users from './Users.vue'
-import Profile from './Profile.vue'
+import FloatingBalls from './FloatingBalls.vue'
 
-// 创建其他占位组件
-const Analytics = {
-  template: `
-    <div class="placeholder-page">
-      <div class="page-header">
-        <h2>数据分析</h2>
-        <p>Excel数据统计与分析</p>
-      </div>
-      <el-card>
-        <div style="text-align: center; padding: 60px 0;">
-          <el-icon size="64" color="#409eff"><DataAnalysis /></el-icon>
-          <h3 style="margin: 20px 0 10px 0;">数据分析功能</h3>
-          <p style="color: #909399;">该功能正在开发中，敬请期待...</p>
-        </div>
-      </el-card>
-    </div>
-  `
+const route = useRoute()
+
+// 根据当前路由计算活动菜单
+const activeMenu = computed(() => {
+  return route.path
+})
+
+// 显示反馈对话框
+const showFeedbackDialog = () => {
+  // 跳转到反馈页面
+  window.location.href = '/admin/feedback-submit'
 }
-
-const SystemConfig = {
-  template: `
-    <div class="placeholder-page">
-      <div class="page-header">
-        <h2>系统配置</h2>
-        <p>系统参数设置与配置</p>
-      </div>
-      <el-card>
-        <div style="text-align: center; padding: 60px 0;">
-          <el-icon size="64" color="#409eff"><Setting /></el-icon>
-          <h3 style="margin: 20px 0 10px 0;">系统配置</h3>
-          <p style="color: #909399;">该功能正在开发中，敬请期待...</p>
-        </div>
-      </el-card>
-    </div>
-  `
-}
-
-const SystemLogs = {
-  template: `
-    <div class="placeholder-page">
-      <div class="page-header">
-        <h2>系统日志</h2>
-        <p>查看系统运行日志</p>
-      </div>
-      <el-card>
-        <div style="text-align: center; padding: 60px 0;">
-          <el-icon size="64" color="#409eff"><Document /></el-icon>
-          <h3 style="margin: 20px 0 10px 0;">系统日志</h3>
-          <p style="color: #909399;">该功能正在开发中，敬请期待...</p>
-        </div>
-      </el-card>
-    </div>
-  `
-}
-
-const activeMenu = ref('dashboard')
-const currentComponent = ref(Dashboard)
-const componentKey = ref(0)
-
-// 组件映射
-const componentMap = {
-  dashboard: Dashboard,
-  excel: ExcelPage,
-  users: Users,
-  profile: Profile,
-  analytics: Analytics,
-  'system-config': SystemConfig,
-  'system-logs': SystemLogs
-}
-
-// 更新组件的函数
-const updateComponent = (menuKey: string) => {
-  const component = componentMap[menuKey] || Dashboard
-  currentComponent.value = component
-  componentKey.value++
-}
-
-const handleMenuSelect = (index: string) => {
-  // 直接更新activeMenu和组件
-  activeMenu.value = index
-  updateComponent(index)
-}
-
-// 初始化时设置默认组件
-updateComponent('dashboard')
 </script>
 
 <style scoped>

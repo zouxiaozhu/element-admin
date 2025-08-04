@@ -1,44 +1,158 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Index from '@c/admin/Index.vue'
-import Login from '@c/admin/Login.vue'
-import Layout from '@c/admin/Layout.vue'
-import ExcelPage from '@c/admin/ExcelPage.vue'
-import ExcelSearch from '@/web/ExcelSearch.vue'
+import { getToken } from '@/utils/auth'
+
+// 动态导入组件
+const Login = () => import('@/components/admin/Login.vue')
+const Layout = () => import('@/components/admin/Layout.vue')
+const Dashboard = () => import('@/components/admin/Dashboard.vue')
+const ExcelPage = () => import('@/components/admin/ExcelPage.vue')
+const Users = () => import('@/components/admin/Users.vue')
+const Profile = () => import('@/components/admin/Profile.vue')
+const DocumentConvert = () => import('@/components/admin/DocumentConvert.vue')
+const FormBuilder = () => import('@/components/admin/form/FormBuilder.vue')
+const FormilyBuilder = () => import('@/components/admin/form/FormilyBuilder.vue')
+const FormList = () => import('@/components/admin/form/FormList.vue')
+const FormPreview = () => import('@/components/admin/form/FormPreview.vue')
+const QRCodeList = () => import('@/components/admin/qrcode/QRCodeList.vue')
+const QRCodeEditor = () => import('@/components/admin/qrcode/QRCodeEditor.vue')
+const FeedbackManagement = () => import('@/components/admin/FeedbackManagement.vue')
+const MyFeedback = () => import('@/components/admin/MyFeedback.vue')
+
+
+// 占位组件
+const PlaceholderPage = {
+  template: `
+    <div class="placeholder-page">
+      <el-result icon="info" title="功能开发中" sub-title="该功能正在开发中，敬请期待...">
+        <template #extra>
+          <el-button type="primary" @click="$router.go(-1)">返回</el-button>
+        </template>
+      </el-result>
+    </div>
+  `
+}
 
 const routes = [
   {
     path: '/',
-    component: Index,
-    name: 'Admin',
-    meta: { title: '管理后台' }
+    redirect: '/admin'
+  },
+  {
+    path: '/login',
+    redirect: '/admin/login'
+  },
+  {
+    path: '/admin/login',
+    name: 'Login',
+    component: Login,
+    meta: {
+      title: '管理员登录',
+      requiresAuth: false
+    }
   },
   {
     path: '/admin',
     component: Layout,
-    name: 'Layout',
-    meta: { title: '管理后台' }
-  },
-  {
-    path: '/excel',
-    component: ExcelPage,
-    name: 'Excel',
-    meta: { title: 'Excel管理' }
-  },
-  {
-    path: '/login',
-    component: Login,
-    name: 'Login',
-    meta: { title: '登录' }
-  },
-  {
-    path: '/excel-search',
-    component: ExcelSearch,
-    name: 'ExcelSearch',
-    meta: { title: 'Excel 数据查询' }
-  },
-  {
-    path: '/index',
-    redirect: '/'
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'Dashboard',
+        component: Dashboard,
+        meta: { title: '仪表盘' }
+      },
+      {
+        path: 'excel',
+        name: 'Excel',
+        component: ExcelPage,
+        meta: { title: 'Excel管理' }
+      },
+      {
+        path: 'document-convert',
+        name: 'DocumentConvert',
+        component: DocumentConvert,
+        meta: { title: 'Excel转Word工具' }
+      },
+      {
+        path: 'form/list',
+        name: 'FormList',
+        component: FormList,
+        meta: { title: '表单列表' }
+      },
+      {
+        path: 'form/builder/:id?',
+        name: 'FormBuilder',
+        component: FormBuilder,
+        meta: { title: '表单设计器' }
+      },
+      {
+        path: 'form/formily/:id?',
+        name: 'FormilyBuilder',
+        component: FormilyBuilder,
+        meta: { title: 'Formily表单设计器' }
+      },
+      {
+        path: 'form/preview/:id',
+        name: 'FormPreview',
+        component: FormPreview,
+        meta: { title: '表单预览' }
+      },
+      {
+        path: 'qrcode',
+        name: 'QRCodeList',
+        component: QRCodeList,
+        meta: { title: '二维码管理' }
+      },
+      {
+        path: 'qrcode/create',
+        name: 'QRCodeCreate',
+        component: QRCodeEditor,
+        meta: { title: '创建二维码' }
+      },
+      {
+        path: 'qrcode/edit/:id',
+        name: 'QRCodeEdit',
+        component: QRCodeEditor,
+        meta: { title: '编辑二维码' }
+      },
+      {
+        path: 'users',
+        name: 'Users',
+        component: Users,
+        meta: { title: '用户管理' }
+      },
+      {
+        path: 'profile',
+        name: 'Profile',
+        component: Profile,
+        meta: { title: '个人资料' }
+      },
+      {
+        path: 'system-config',
+        name: 'SystemConfig',
+        component: PlaceholderPage,
+        meta: { title: '系统配置' }
+      },
+      {
+        path: 'system-logs',
+        name: 'SystemLogs',
+        component: PlaceholderPage,
+        meta: { title: '系统日志' }
+      },
+      {
+        path: 'feedback',
+        name: 'FeedbackManagement',
+        component: FeedbackManagement,
+        meta: { title: '用户反馈管理' }
+      },
+      {
+        path: 'my-feedback',
+        name: 'MyFeedback',
+        component: MyFeedback,
+        meta: { title: '我的反馈' }
+      },
+
+    ]
   }
 ]
 
@@ -47,27 +161,19 @@ const router = createRouter({
   routes
 })
 
-import { getToken } from '@/utils/auth.js'
-
 // 路由守卫
 router.beforeEach((to, from, next) => {
-  // 不需要验证token的页面
-  const publicPages = ['/login', '/excel-search']
-  const authRequired = !publicPages.includes(to.path)
-
-  // 获取token
   const token = getToken()
+  console.log('路由守卫:', { to: to.path, from: from.path, hasToken: !!token })
 
-  if (authRequired && !token) {
-    // 需要登录但没有token，跳转到登录页
-    console.log('No token found, redirecting to login...')
-    next('/login')
-  } else if (to.path === '/login' && token) {
-    // 已经登录但访问登录页，跳转到管理后台
-    console.log('Already logged in, redirecting to admin...')
+  if (to.meta.requiresAuth && !token) {
+    console.log('需要认证但无token，跳转到登录页')
+    next('/admin/login')
+  } else if (to.path === '/admin/login' && token) {
+    console.log('已登录用户访问登录页，跳转到首页')
     next('/admin')
   } else {
-    // 允许访问
+    console.log('正常路由跳转')
     next()
   }
 })

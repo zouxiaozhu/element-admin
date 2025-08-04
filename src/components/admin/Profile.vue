@@ -133,51 +133,89 @@ const handleAvatarUpload = async (options) => {
   const { file } = options
   uploading.value = true
   
-  try {
+    console.log('开始上传头像...')
+    
     // 调用dashboard.js中的uploadFile方法上传头像
     const uploadResponse = await dashboardApi.uploadFile(file, 'USER_AVATAR')
+    console.log('头像上传响应:', uploadResponse)
     
     // 检查上传是否成功并获取正确的响应数据
-    let avatarUrl
-    avatarUrl = uploadResponse.externalUrl || uploadResponse.url // 兼容直接返回数据的情况
-    const updateResponse = await authApi.updateUserInfo({"avatar": avatarUrl})
-      // 更新用户信息中的头像
+    if (!uploadResponse || !uploadResponse.success) {
+      throw new Error(uploadResponse?.message || '头像上传失败')
+    }
+    
+    // 获取头像URL
+    const avatarUrl = uploadResponse.data?.externalUrl || uploadResponse.data?.internalUrl || uploadResponse.data?.path || uploadResponse.externalUrl || uploadResponse.url
+    
+    if (!avatarUrl) {
+      throw new Error('无法获取头像URL')
+    }
+    
+    console.log('头像URL:', avatarUrl)
+    
+    // 更新用户信息中的头像
+    const updateResponse = await authApi.updateUserInfo({ avatar: avatarUrl })
+    console.log('更新用户信息响应:', updateResponse)
+    
+      // 从后端响应中获取完整的用户信息
+      const updatedUserInfo = updateResponse
       if (userInfo.value) {
-        userInfo.value.avatar = avatarUrl
-        setUserInfo(userInfo.value, true) // 保存到localStorage
-      }
-      ElMessage.success('头像更新成功!')
-  } catch (error) {
-    console.error('头像上传失败:', error)
-    ElMessage.error(error.message || '头像上传失败，请重试')
-  } finally {
-    uploading.value = false
-  }
+          Object.assign(userInfo.value, updatedUserInfo)
+          setUserInfo(userInfo.value, true) // 保存到localStorage
+        }
+        // 强制触发响应式更新
+        userInfo.value = { ...userInfo.value }
+        // 触发全局事件，通知其他组件用户信息已更新
+        window.dispatchEvent(new CustomEvent('user-info-updated'))
+        ElMessage.success('头像更新成功!')
+        uploading.value=false
+  
 }
 
 // 保存用户信息
 const handleSave = async () => {
   if (!formRef.value) return
   
-      try {
-      await formRef.value.validate()
-      saving.value = true
-      
-      // 调用authApi的updateUserInfo方法保存用户信息
-      const response = await authApi.updateUserInfo(userForm)
+  try {
+    await formRef.value.validate()
+    saving.value = true
     
-      // 检查更新是否成功
+    console.log('保存用户信息:', userForm)
+    
+    // 调用authApi的updateUserInfo方法保存用户信息
+    const response = await authApi.updateUserInfo(userForm)
+    console.log('保存用户信息响应:', response)
+    
+    // 检查更新是否成功
+    if (response && response.success) {
+      // 从后端响应中获取完整的用户信息
+      const updatedUserInfo = response.data
+      if (updatedUserInfo) {
         // 更新本地用户信息引用
+        if (userInfo.value) {
+          Object.assign(userInfo.value, updatedUserInfo)
+          setUserInfo(userInfo.value, true)
+        }
+        // 强制触发响应式更新
+        userInfo.value = { ...userInfo.value }
+        // 触发全局事件，通知其他组件用户信息已更新
+        window.dispatchEvent(new CustomEvent('user-info-updated'))
+      } else {
+        // 如果没有返回完整用户信息，只更新表单数据
         if (userInfo.value) {
           Object.assign(userInfo.value, userForm)
           setUserInfo(userInfo.value, true)
-        ElMessage.success('保存成功!')
-      } else {
-        throw new Error(response.message || '保存失败')
+          userInfo.value = { ...userInfo.value }
+          window.dispatchEvent(new CustomEvent('user-info-updated'))
+        }
       }
-        } catch (error) {
-      console.error('保存失败:', error)
-      ElMessage.error(error.message || '保存失败，请重试')
+      ElMessage.success('保存成功!')
+    } else {
+      throw new Error(response?.message || '保存失败')
+    }
+  } catch (error) {
+    console.error('保存失败:', error)
+    ElMessage.error(error.message || '保存失败，请重试')
   } finally {
     saving.value = false
   }

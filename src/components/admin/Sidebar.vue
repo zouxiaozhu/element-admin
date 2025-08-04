@@ -2,132 +2,160 @@
   <aside class="sidebar">
     <el-menu
       :default-active="props.activeMenu"
+      :default-openeds="defaultOpeneds"
       class="sidebar-menu"
       background-color="#ffffff"
       text-color="#606266"
       active-text-color="#409eff"
-      @select="handleSelect"
+      mode="vertical"
+      :collapse="false"
+      router
     >
-      <el-menu-item index="dashboard">
+      <el-menu-item index="/admin">
         <el-icon><House /></el-icon>
         <span>仪表盘</span>
       </el-menu-item>
       
-      <el-menu-item index="excel">
+      <el-menu-item index="/admin/excel">
         <el-icon><Document /></el-icon>
-        <span>Excel管理</span>
+        <span>Excel搜索</span>
       </el-menu-item>
       
-      <el-menu-item index="users">
+      <el-menu-item index="/admin/document-convert">
+        <el-icon><DocumentCopy /></el-icon>
+        <span>Excel转Word</span>
+      </el-menu-item>
+
+      <el-sub-menu index="form" class="hidden-menu">
+        <template #title>
+          <el-icon><Collection /></el-icon>
+          <span>表单管理</span>
+        </template>
+        <el-menu-item index="/admin/form/list">表单列表</el-menu-item>
+        <el-menu-item index="/admin/form/builder">表单设计器</el-menu-item>
+        <el-menu-item index="/admin/form/formily">Formily设计器</el-menu-item>
+      </el-sub-menu>
+
+      <el-sub-menu index="qrcode" class="hidden-menu">
+        <template #title>
+          <el-icon><Picture /></el-icon>
+          <span>二维码管理</span>
+        </template>
+        <el-menu-item index="/admin/qrcode">二维码列表</el-menu-item>
+        <el-menu-item index="/admin/qrcode/create">创建二维码</el-menu-item>
+      </el-sub-menu>
+
+      <el-menu-item index="/admin/users" class="hidden-menu">
         <el-icon><User /></el-icon>
         <span>用户管理</span>
       </el-menu-item>
       
-      <el-sub-menu index="system">
+      <el-menu-item index="/admin/my-feedback">
+        <el-icon><Message /></el-icon>
+        <span>我的反馈</span>
+      </el-menu-item>
+      
+
+      
+      <el-menu-item index="/admin/profile">
+        <el-icon><Avatar /></el-icon>
+        <span>个人资料</span>
+      </el-menu-item>
+      
+      <el-sub-menu index="system" class="hidden-menu">
         <template #title>
           <el-icon><Setting /></el-icon>
           <span>系统管理</span>
         </template>
-        <el-menu-item index="system-config">系统配置</el-menu-item>
-        <el-menu-item index="system-logs">系统日志</el-menu-item>
+        <el-menu-item index="/admin/system-config">系统配置</el-menu-item>
+        <el-menu-item index="/admin/system-logs">系统日志</el-menu-item>
       </el-sub-menu>
       
-      <el-menu-item index="analytics">
-        <el-icon><DataAnalysis /></el-icon>
-        <span>数据分析</span>
-      </el-menu-item>
+
     </el-menu>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { House, Document, User, Setting, DataAnalysis } from '@element-plus/icons-vue'
+import { 
+  House, 
+  Document, 
+  DocumentCopy,
+  Collection,
+  Picture,
+  User, 
+  Setting, 
+  Message,
+  Avatar,
+  ChatDotRound
+} from '@element-plus/icons-vue'
 
-interface Props {
-  activeMenu?: string
-}
-
-interface Emits {
-  (e: 'menu-select', index: string): void
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  activeMenu: 'dashboard'
+const props = defineProps({
+  activeMenu: {
+    type: String,
+    default: '/admin'
+  }
 })
 
-const emit = defineEmits<Emits>()
-
-const handleSelect = (index: string) => {
-  emit('menu-select', index)
-}
+// 默认展开的子菜单
+const defaultOpeneds = ['form', 'qrcode', 'system']
 </script>
 
 <style scoped>
 .sidebar {
-  width: 240px;
-  background: #ffffff;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+  width: 200px;
   height: 100%;
-  overflow-y: auto;
+  background-color: #ffffff;
+  border-right: 1px solid #e6e6e6;
 }
 
 .sidebar-menu {
   border: none;
   height: 100%;
-  padding: 16px 0;
 }
 
-:deep(.el-menu-item) {
-  height: 48px;
-  line-height: 48px;
-  margin: 4px 12px;
-  border-radius: 8px;
-  transition: all 0.2s;
+.sidebar-menu .el-menu-item {
+  height: 50px;
+  line-height: 50px;
 }
 
-:deep(.el-menu-item:hover) {
-  background-color: #f5f7fa !important;
-  color: #409eff !important;
+.sidebar-menu .el-menu-item:hover {
+  background-color: #ecf5ff;
 }
 
-:deep(.el-menu-item.is-active) {
-  background-color: #ecf5ff !important;
-  color: #409eff !important;
-  border-right: none;
+.sidebar-menu .el-menu-item.is-active {
+  background-color: #ecf5ff;
+  border-right: 2px solid #409eff;
 }
 
-:deep(.el-sub-menu .el-sub-menu__title) {
-  height: 48px;
-  line-height: 48px;
-  margin: 4px 12px;
-  border-radius: 8px;
-  transition: all 0.2s;
+.sidebar-menu .el-sub-menu .el-menu-item {
+  height: 45px;
+  line-height: 45px;
+  padding-left: 50px !important;
+  background-color: #fafafa;
 }
 
-:deep(.el-sub-menu .el-sub-menu__title:hover) {
-  background-color: #f5f7fa !important;
-  color: #409eff !important;
+.sidebar-menu .el-sub-menu .el-menu-item:hover {
+  background-color: #ecf5ff;
 }
 
-:deep(.el-sub-menu .el-menu-item) {
-  margin: 2px 24px;
-  padding-left: 32px !important;
+.sidebar-menu .el-sub-menu .el-menu-item.is-active {
+  background-color: #ecf5ff;
+  color: #409eff;
 }
 
-:deep(.el-menu .el-icon) {
-  margin-right: 8px;
-  width: 20px;
-  height: 20px;
+.sidebar-menu .el-sub-menu__title {
+  height: 50px;
+  line-height: 50px;
 }
 
-@media (max-width: 768px) {
-  .sidebar {
-    width: 200px;
-  }
-  
-  :deep(.el-menu-item span) {
-    font-size: 14px;
-  }
+.sidebar-menu .el-sub-menu__title:hover {
+  background-color: #ecf5ff;
+}
+
+/* 隐藏菜单项 */
+.hidden-menu {
+  display: none !important;
 }
 </style>
 

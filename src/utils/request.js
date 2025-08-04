@@ -61,7 +61,7 @@ service.interceptors.response.use(
 
     },
     error => {
-        debugger
+        // debugger
         // 对响应错误做点什么
 
         // 创建增强的错误对象

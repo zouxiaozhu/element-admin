@@ -13,8 +13,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ckeditor/ckeditor5-build-classic": "^44.3.0",
+    "@ckeditor/ckeditor5-vue": "^7.3.0",
+    "@formily/core": "^2.3.7",
+    "@formily/element-plus": "^1.1.0",
+    "@formily/reactive": "^2.3.7",
+    "@formily/shared": "^2.3.7",
+    "@formily/validator": "^2.3.7",
+    "@formily/vue": "^2.3.7",
     "axios": "^1.10.0",
+    "cos-js-sdk-v5": "^1.10.1",
     "element-plus": "^2.10.4",
+    "html2canvas": "^1.4.1",
+    "qrcode": "^1.5.4",
+    "qrcode-generator": "^2.0.2",
     "vue": "^3.5.17",
     "vue-router": "^4.5.1",
     "vuex": "^4.0.2"
