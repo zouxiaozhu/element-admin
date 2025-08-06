@@ -12,17 +12,6 @@ export const dashboardApi = {
     },
 
     uploadFile(file, businessType) {
-        // 直接使用axios，避免被request拦截器处理
-        const formData = new FormData()
-        formData.append('file', file)
-
-        return axios.post(apiBaseUrl + '/file/upload?businessType=' + businessType, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-                'Authorization': `Bearer ${getToken()}`
-            }
-        }).then(response => {
-            return response.data
-        })
+        return request.upload('/file/upload?businessType=' + businessType, file);
     }
 } 

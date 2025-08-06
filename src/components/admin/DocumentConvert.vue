@@ -296,6 +296,7 @@ import {
 import { documentApi } from '@/api/document';
 import { uploadToCOS, getFileUrl } from '@/utils/cos';
 import { getUploadMode } from '@/utils/env';
+import { handleError, safeAsync } from '@/utils/errorHandler';
 
 export default defineComponent({
   name: 'DocumentConvert',
@@ -378,23 +379,13 @@ export default defineComponent({
 
     // 通用文件上传方法
     const uploadFile = async (file, fileType) => {
-      const uploadMode = getUploadMode();
-      
-      if (uploadMode === 'COS') {
-        // 上传到 COS
-        const url = await uploadToCOS(file, fileType);
-        return {
-          url: url,
-          type: fileType.toUpperCase(),
-          filename: file.name,
-          size: file.size,
-          oss_type: 'COS'
-        };
-      } else {
-        // 上传到服务器
-        const response = await documentApi.uploadFile(file, fileType);
-        return response;
-      }
+        return safeAsync(
+            async () => {
+                const response = await documentApi.uploadFile(file, fileType);
+                return response;
+            },
+            '文件上传失败，请重试'
+        );
     };
 
     // 解析Excel文件，获取变量信息
@@ -407,18 +398,19 @@ export default defineComponent({
 
       try {
         // 使用通用上传方法上传Excel文件
-        const fileData = await uploadFile(excelFile.value, 'excel');
-        excelFileUrl.value = fileData.url;
-
+        const fileData = await uploadFile(excelFile.value, 'EXCEL_TO_WORD_EXCEL');
+        excelFileUrl.value = fileData;
+      
         // 调用API解析Excel
-        const response = await documentApi.parseTable({
-          excel_url: excelFileUrl.value
-        });
+        const response = await documentApi.parseTable(fileData);
 
-        excelVars.value = response.vars;
+        if (response && response.vars) {
+          excelVars.value = response.vars;
+        } else {
+          throw new Error('Excel文件解析失败，未获取到变量信息');
+        }
       } catch (error) {
-        console.error('解析Excel文件失败:', error);
-        errorMessage.value = '解析Excel文件失败，请检查网络连接或重试';
+        handleError(error, '解析Excel文件失败，请检查网络连接或重试', true);
         excelFileUrl.value = '';
       } finally {
         isParsingExcel.value = false;
@@ -527,10 +519,10 @@ export default defineComponent({
         errorMessage.value = '';
 
         // 上传Word文件
-        uploadFile(file, 'word')
+       documentApi.uploadFile(file, 'EXCEL_TO_WORD_WORD')
           .then(fileData => {
-            wordFileUrl.value = fileData.url;
-            console.log('Word文件上传成功:', fileData.url);
+            wordFileUrl.value = fileData;
+            console.log('Word文件上传成功:', fileData);
             startWordCountdown();
 
             if (!excelFile.value && excelVars.value.length === 0) {
@@ -546,6 +538,7 @@ export default defineComponent({
     };
 
     const startConversion = async () => {
+      console.log(excelFile.value,wordFile.value)
       if (!excelFile.value || !wordFile.value) {
         statusMessage.value = '请先上传Excel文件和Word模板';
         return;
@@ -557,18 +550,6 @@ export default defineComponent({
         return;
       }
 
-      if (!wordFileUrl.value) {
-        statusMessage.value = '正在上传Word文件，请稍候...';
-        try {
-          const fileData = await uploadFile(wordFile.value, 'word');
-          wordFileUrl.value = fileData.url;
-        } catch (err) {
-          console.error('Word文件上传失败:', err);
-          errorMessage.value = 'Word文件上传失败，请重试';
-          return;
-        }
-      }
-
       isConverting.value = true;
       statusMessage.value = '准备转换...';
 
@@ -577,19 +558,10 @@ export default defineComponent({
       errorMessage.value = '';
 
       try {
-        // 确保Excel文件已上传
-        if (!excelFileUrl.value && excelFile.value) {
-          const fileData = await uploadFile(excelFile.value, 'excel');
-          excelFileUrl.value = fileData.url;
-        }
-
         // 创建转换任务
         const response = await documentApi.transferTable({
-          excel_url: excelFileUrl.value,
-          word_url: wordFileUrl.value,
-          word_file_name: wordFile.value.name,
-          excel_file_name: excelFile.value.name,
-          oss_type: getUploadMode()
+          excel: excelFileUrl.value,
+          word: wordFileUrl.value,
         });
 
         taskId.value = response.task.task_id;
@@ -835,7 +807,7 @@ export default defineComponent({
       wordFileUrl.value = '';
       errorMessage.value = '';
 
-      uploadFile(wordFile.value, 'word')
+      uploadFile(wordFile.value, 'EXCEL_TO_WORD_WORD')
         .then(fileData => {
           wordFileUrl.value = fileData.url;
           console.log('Word文件重新上传成功:', fileData.url);

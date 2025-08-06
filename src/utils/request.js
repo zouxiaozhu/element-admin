@@ -2,6 +2,7 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { env } from './env.js'
 import { getToken } from './auth.js'
+import { handleAuthError, isAuthError } from './errorHandler.js'
 
 // 创建 axios 实例
 const service = axios.create({
@@ -37,33 +38,48 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
     response => {
+        // 检查是否是文件上传响应
+        if (response.config.url && response.config.url.includes('/file/upload')) {
+            // 文件上传接口直接返回数据
+            if (response.data && response.data.success) {
+                return response.data.data || response.data
+            } else {
+                // 检查是否是认证错误
+                if (response.data.code === 10103 || response.data.code === 401) {
+                    handleAuthError(response.data.message || 'Token无效或已过期');
+                    return new Promise(() => { }); // 阻止后续处理
+                }
+
+                let enhancedError = new Error(response.data.message || '文件上传失败')
+                enhancedError.code = response.data.code || -1
+                enhancedError.type = 'UPLOAD_ERROR'
+                return Promise.reject(enhancedError)
+            }
+        }
+
+        // 其他接口的标准处理
         if (response.data.success && response.data.code === 0) {
             return response.data.data
         }
 
+        // 处理错误码
         switch (response.data.code) {
             case 401:
             case 10103:
-                ElMessage.error("登录已过期,请重新登录");
-                // 清除token并跳转到登录页
-                localStorage.removeItem('token');
-                sessionStorage.removeItem('token');
-                window.location.href = '/login';
-                break;
+                handleAuthError(response.data.message || 'Token无效或已过期');
+                return new Promise(() => { }); // 阻止后续处理
             case 403:
                 ElMessage.error('拒绝访问')
                 break
         }
+
         let enhancedError = new Error(response.data.message || '网络连接失败')
-        enhancedError.code = -1
+        enhancedError.code = response.data.code || -1
         enhancedError.type = 'NETWORK_ERROR'
         return Promise.reject(enhancedError)
 
     },
     error => {
-        // debugger
-        // 对响应错误做点什么
-
         // 创建增强的错误对象
         let enhancedError = error
 
@@ -81,12 +97,8 @@ service.interceptors.response.use(
             // 根据HTTP状态码显示通用错误信息
             switch (status) {
                 case 401:
-                    ElMessage.error('未授权，请重新登录')
-                    // 清除token并跳转到登录页
-                    localStorage.removeItem('token')
-                    sessionStorage.removeItem('token')
-                    window.location.href = '/login'
-                    break
+                    handleAuthError('未授权，请重新登录');
+                    return new Promise(() => { }); // 阻止后续处理
                 case 403:
                     ElMessage.error('拒绝访问')
                     break
@@ -97,6 +109,12 @@ service.interceptors.response.use(
                     ElMessage.error('服务器内部错误')
                     break
                 default:
+                    // 检查是否是认证错误（通过错误码判断）
+                    if (data.code === 10103 || data.code === 401) {
+                        handleAuthError(data.message || 'Token无效或已过期');
+                        return new Promise(() => { }); // 阻止后续处理
+                    }
+
                     // 显示后端返回的具体错误信息
                     if (data.message) {
                         ElMessage.error(data.message)
