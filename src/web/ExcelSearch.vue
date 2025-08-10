@@ -20,7 +20,7 @@
         <template #header>
           <div class="card-header">
             <span>搜索条件</span>
-            <el-button type="text" @click="clearSearch">清空搜索</el-button>
+            <el-button link @click="clearSearch">清空搜索</el-button>
           </div>
         </template>
         
@@ -63,7 +63,7 @@
         <template #header>
           <div class="card-header">
             <span>查询结果 (共 {{ searchResults.length }} 条)</span>
-            <el-button type="text" @click="exportResults">导出结果</el-button>
+            <el-button link @click="exportResults">导出结果</el-button>
           </div>
         </template>
         
@@ -85,7 +85,7 @@
           />
           <el-table-column label="操作" :width="isMobile ? 80 : 120" fixed="right">
             <template #default="scope">
-              <el-button type="text" size="small" @click="viewDetail(scope.row)">详情</el-button>
+              <el-button link size="small" @click="viewDetail(scope.row)">详情</el-button>
             </template>
           </el-table-column>
         </el-table>

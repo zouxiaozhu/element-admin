@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Excel转Word 使用教程 | DeskWork</title>
+    <meta name="description" content="DeskWork Excel转Word 教程：一步一步教你上传Excel与Word模板、变量标记、批量生成与下载压缩包，包含常见问题与最佳实践。" />
+    <meta name="keywords" content="Excel转Word教程, Word模板变量, 批量生成Word, Excel to Word 指南, DeskWork" />
+    <meta name="robots" content="index,follow" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+
+    <meta property="og:title" content="Excel转Word 使用教程 | DeskWork" />
+    <meta property="og:description" content="一步一步教你用 DeskWork 批量从Excel生成Word文档，支持变量替换与压缩包下载。" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://www.deskwork.cn/help-excel-to-word.html" />
+    <meta property="og:image" content="https://www.deskwork.cn/logo.png" />
+    <link rel="canonical" href="https://www.deskwork.cn/help-excel-to-word.html" />
+
+    <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Excel转Word 使用教程",
+    "about": "Excel 转 Word 模板批量生成",
+    "author": {"@type": "Organization", "name": "DeskWork 团队"},
+    "publisher": {"@type": "Organization", "name": "DeskWork", "logo": {"@type": "ImageObject", "url": "https://www.deskwork.cn/logo.png"}},
+    "url": "https://www.deskwork.cn/help-excel-to-word.html",
+    "inLanguage": "zh-CN"
+  }
+  </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+            margin: 0
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            border-radius: 12px;
+            padding: 36px 24px;
+            margin: 16px 0
+        }
+
+        h1 {
+            margin: 0 0 8px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
+            padding: 24px;
+            margin: 20px 0
+        }
+
+        h2 {
+            border-left: 4px solid #409eff;
+            padding-left: 10px
+        }
+
+        ol li {
+            margin: 8px 0
+        }
+
+        .code {
+            background: #f7f8fa;
+            border: 1px solid #eef0f4;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-family: Consolas, monospace
+        }
+
+        .tips {
+            background: #fff8e6;
+            border: 1px solid #ffe7b8;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin: 10px 0
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 14px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>Excel转Word 使用教程</h1>
+            <p>参考帮助页 <a href="https://www.deskwork.cn/help.html" target="_blank" rel="nofollow">DeskWork 帮助中心</a>，本文聚焦
+                Excel → Word 的完整流程与最佳实践。</p>
+        </div>
+
+        <div class="card">
+            <h2>一、功能介绍</h2>
+            <p>将 Excel 表格中的每一行数据，按变量替换规则填充到 Word 模板中，批量生成个性化文档；支持单个下载与 ZIP 批量下载。</p>
+            <div class="grid">
+                <div>
+                    <h3>支持格式</h3>
+                    <div class="code">Excel：.xlsx/.xls（≤100MB）<br />Word 模板：.docx（≤10MB）</div>
+                </div>
+                <div>
+                    <h3>变量规则</h3>
+                    <div class="code">在 Word 中用 ${变量名} 标记；变量名需与 Excel 表头完全一致</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>二、操作步骤</h2>
+            <ol>
+                <li>准备 Excel：第一行为表头（变量名），其余为数据行</li>
+                <li>准备 Word 模板：在需要替换的位置输入 <span class="code">${变量名}</span></li>
+                <li>在系统中上传 Excel，确认“解析变量”列表无误</li>
+                <li>上传 Word 模板（.docx），点击“开始转换”</li>
+                <li>处理中可实时看到成功文件逐步出现；完成后可“批量下载”（ZIP）</li>
+                <li>如需重新开始，点击“重置任务”清空状态</li>
+            </ol>
+            <div class="tips"><strong>提示：</strong>先上传 Excel 并核对变量，再上传 Word 模板，可显著降低变量不匹配导致的失败。</div>
+        </div>
+
+        <div class="card">
+            <h2>三、最佳实践</h2>
+            <ul>
+                <li>变量名尽量简洁、避免特殊字符，建议中文或下划线分隔</li>
+                <li>图片变量可约定：<span class="code">${图片:4cm*4cm}</span>（示例）</li>
+                <li>文档排版先定型再放变量，减少换行/溢出问题</li>
+                <li>海量数据建议分批次（每批 ≤ 1000 行）</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>四、常见问题</h2>
+            <p><strong>Q1：</strong>变量未替换？<br />A：检查变量名是否与 Excel 表头完全一致，包含大小写与空格。</p>
+            <p><strong>Q2：</strong>下载失败？<br />A：请允许浏览器下载；ZIP 链接在“批量下载”按钮处获取。</p>
+        </div>
+    </div>
+    <footer style="text-align:center;color:#909399;font-size:12px;margin:24px 0;">
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener"
+            style="color:#909399;text-decoration:none;">浙ICP备2025166866号</a>
+    </footer>
+</body>
+
+</html>

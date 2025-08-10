@@ -17,6 +17,11 @@ const QRCodeList = () => import('@/components/admin/qrcode/QRCodeList.vue')
 const QRCodeEditor = () => import('@/components/admin/qrcode/QRCodeEditor.vue')
 const FeedbackManagement = () => import('@/components/admin/FeedbackManagement.vue')
 const MyFeedback = () => import('@/components/admin/MyFeedback.vue')
+// 公共页面：Excel 搜索（无需登录）
+const ExcelSearchPublic = () => import('@/web/ExcelSearch.vue')
+// Excel转Word：列表页与新建页
+const DocumentConvertList = () => import('@/components/admin/DocumentConvertList.vue')
+const DocumentConvertNew = () => import('@/components/admin/DocumentConvertNew.vue')
 
 
 // 占位组件
@@ -36,6 +41,16 @@ const routes = [
   {
     path: '/',
     redirect: '/admin'
+  },
+  // 公开页面：Excel 在线搜索
+  {
+    path: '/excel-search',
+    name: 'ExcelSearchPublic',
+    component: ExcelSearchPublic,
+    meta: {
+      title: 'Excel数据搜索',
+      requiresAuth: false
+    }
   },
   {
     path: '/login',
@@ -69,9 +84,15 @@ const routes = [
       },
       {
         path: 'document-convert',
-        name: 'DocumentConvert',
-        component: DocumentConvert,
-        meta: { title: 'Excel转Word工具' }
+        name: 'DocumentConvertList',
+        component: DocumentConvertList,
+        meta: { title: 'Excel转Word · 历史记录' }
+      },
+      {
+        path: 'document-convert/new',
+        name: 'DocumentConvertNew',
+        component: DocumentConvertNew,
+        meta: { title: '新建Excel转Word任务' }
       },
       {
         path: 'form/list',

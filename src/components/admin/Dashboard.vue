@@ -65,33 +65,33 @@
           </div>
         </template>
         <div class="actions-grid">
-          <el-button type="primary" size="large" @click="goToExcel">
+          <el-button type="primary" size="large" @click="goToExcelToWord">
             <el-icon><Upload /></el-icon>
-            上传Excel文件
+            Excel转Word
           </el-button>
-          <el-button type="success" size="large" @click="goToAnalysis">
+          <el-button type="success" size="large" @click="goToExcelSearch">
             <el-icon><DataAnalysis /></el-icon>
-            数据分析
+            Excel搜索
           </el-button>
-          <el-button type="info" size="large" @click="goToUsers">
+          <el-button type="info" size="large" @click="goToProfile">
             <el-icon><User /></el-icon>
-            用户管理
+            个人资料
           </el-button>
-          <el-button type="warning" size="large" @click="goToSettings">
+          <el-button type="warning" size="large" @click="goToMyFeedback">
             <el-icon><Setting /></el-icon>
-            系统设置
+            我的反馈
           </el-button>
         </div>
       </el-card>
     </div>
     
-    <!-- 最近活动 -->
-    <div class="recent-activity">
+    <!-- 最近活动（功能未实现，暂时隐藏，保留代码） -->
+    <div class="recent-activity" style="display: none;">
       <el-card class="activity-card" shadow="hover">
         <template #header>
           <div class="card-header">
             <span>最近活动</span>
-            <el-button type="text" size="small">查看全部</el-button>
+            <el-button link size="small">查看全部</el-button>
           </div>
         </template>
         <el-timeline>
@@ -111,6 +111,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Document, Loading, User, FolderOpened, Upload, DataAnalysis, Setting } from '@element-plus/icons-vue'
 import { dashboardApi } from '@/api/dashboard'
 
@@ -142,25 +143,12 @@ const recentActivities = ref<Activity[]>([
   { id: 4, description: '新用户注册', time: '2024-01-15 09:20', type: 'success' }
 ])
 
-const emit = defineEmits<{
-  (e: 'menu-select', index: string): void
-}>()
+const router = useRouter()
 
-const goToExcel = () => {
-  emit('menu-select', 'excel')
-}
-
-const goToAnalysis = () => {
-  emit('menu-select', 'analytics')
-}
-
-const goToUsers = () => {
-  emit('menu-select', 'users')
-}
-
-const goToSettings = () => {
-  emit('menu-select', 'system-config')
-}
+const goToExcelToWord = () => router.push('/admin/document-convert')
+const goToExcelSearch = () => router.push('/admin/excel')
+const goToMyFeedback = () => router.push('/admin/my-feedback')
+const goToProfile = () => router.push('/admin/profile')
 
 // 模拟加载统计数据
 const loadStats = () => {

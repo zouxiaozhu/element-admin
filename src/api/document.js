@@ -39,6 +39,16 @@ export const documentApi = {
     // 获取DOT信息
     getDotInfo(data) {
         return request.post('/api/office/dot', data)
+    },
+
+    // 获取历史转换任务列表
+    listHistory(params = {}) {
+        return request.get('/api/excel-to-word/history', params)
+    },
+
+    // 删除历史任务
+    deleteHistory(taskId) {
+        return request.postUrlencoded('/api/excel-to-word/delete', { taskId })
     }
 }
 

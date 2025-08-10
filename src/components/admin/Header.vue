@@ -103,7 +103,7 @@ const updateUnreadCount = (count: number) => {
 }
 
 const showHelp = () => {
-  window.open('/help', '_blank')
+  window.open('/help.html', '_blank')
 }
 
 const handleLogout = () => {

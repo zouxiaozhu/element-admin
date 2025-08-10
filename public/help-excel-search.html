@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Excel搜索 功能教程 | DeskWork</title>
+    <meta name="description" content="DeskWork Excel搜索 教程：分享Excel在线搜索链接，支持关键字过滤并返回匹配的行，适合公开查询与协同场景。" />
+    <meta name="keywords" content="Excel搜索教程, Excel在线查询, Excel分享链接, Excel关键字搜索, DeskWork" />
+    <meta name="robots" content="index,follow" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+
+    <meta property="og:title" content="Excel搜索 功能教程 | DeskWork" />
+    <meta property="og:description" content="解析Excel并生成可分享的搜索链接，外部用户可根据关键字搜索行数据。" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://www.deskwork.cn/help-excel-search.html" />
+    <meta property="og:image" content="https://www.deskwork.cn/logo.png" />
+    <link rel="canonical" href="https://www.deskwork.cn/help-excel-search.html" />
+
+    <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    "headline": "Excel搜索 功能教程",
+    "about": "Excel 在线搜索与分享链接",
+    "author": {"@type": "Organization", "name": "DeskWork 团队"},
+    "publisher": {"@type": "Organization", "name": "DeskWork", "logo": {"@type": "ImageObject", "url": "https://www.deskwork.cn/logo.png"}},
+    "url": "https://www.deskwork.cn/help-excel-search.html",
+    "inLanguage": "zh-CN"
+  }
+  </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+            margin: 0
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            border-radius: 12px;
+            padding: 36px 24px;
+            margin: 16px 0
+        }
+
+        h1 {
+            margin: 0 0 8px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
+            padding: 24px;
+            margin: 20px 0
+        }
+
+        h2 {
+            border-left: 4px solid #409eff;
+            padding-left: 10px
+        }
+
+        ol li {
+            margin: 8px 0
+        }
+
+        .code {
+            background: #f7f8fa;
+            border: 1px solid #eef0f4;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-family: Consolas, monospace
+        }
+
+        .tips {
+            background: #fff8e6;
+            border: 1px solid #ffe7b8;
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin: 10px 0
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>Excel搜索 功能教程</h1>
+            <p>解析Excel每行数据并生成可分享的在线搜索链接，外部用户可按关键字检索某一行或多行数据。</p>
+        </div>
+
+        <div class="card">
+            <h2>一、功能说明</h2>
+            <ul>
+                <li>管理员上传Excel，系统解析表头与行数据</li>
+                <li>系统生成搜索页链接：<span class="code">/web/ExcelSearch?fileCoding=编码</span></li>
+                <li>任何人打开链接后，可输入关键字筛选并查看匹配的行</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>二、操作步骤</h2>
+            <ol>
+                <li>在后台上传Excel，等待解析完成并获取 <strong>文件编码</strong></li>
+                <li>复制搜索链接并分享：<span class="code">https://www.deskwork.cn/web/ExcelSearch?fileCoding=xxxx</span></li>
+                <li>用户打开链接后，在搜索栏输入关键字，点击“搜索”即可获得结果</li>
+            </ol>
+            <div class="tips"><strong>提示：</strong>表头将作为搜索字段名称展示，建议命名清晰易懂。</div>
+        </div>
+
+        <div class="card">
+            <h2>三、最佳实践</h2>
+            <ul>
+                <li>敏感数据请脱敏或仅分享必要字段</li>
+                <li>字段名统一规范，提升搜索体验</li>
+                <li>必要时启用文件有效期或定期更新链接</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>四、常见问题</h2>
+            <p><strong>Q：</strong>没有数据？<br />A：确认链接中的 <span class="code">fileCoding</span> 是否正确且仍然有效。</p>
+            <p><strong>Q：</strong>结果不准确？<br />A：请检查列名与数据是否规范，必要时重新解析Excel。</p>
+        </div>
+    </div>
+    <footer style="text-align:center;color:#909399;font-size:12px;margin:24px 0;">
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="nofollow noopener"
+            style="color:#909399;text-decoration:none;">浙ICP备2025166866号</a>
+    </footer>
+</body>
+
+</html>

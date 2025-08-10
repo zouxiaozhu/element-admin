@@ -6,13 +6,38 @@ npm<template>
       <p>批量将Excel数据填充到Word模板中，支持变量替换</p>
     </div>
 
+    <!-- 历史记录区域 -->
+    <el-card v-if="!hideHistory" class="history-card" shadow="hover" style="margin-bottom: 16px;">
+      <template #header>
+        <div class="card-header">
+          <span>历史转换记录</span>
+          <el-button type="primary" size="large" @click="startNewTaskFromTop">添加新的转换</el-button>
+        </div>
+      </template>
+      <div v-if="loadingHistory" style="text-align:center;color:#909399;">加载中...</div>
+      <div v-else>
+        <el-empty v-if="!historyList || historyList.length === 0" description="暂无历史记录" />
+        <el-table v-else :data="historyList" size="small" border>
+          <el-table-column prop="id" label="ID" width="90" />
+          <el-table-column prop="taskId" label="任务ID" width="180" />
+          <el-table-column prop="fileCount" label="文件数" width="90" />
+          <el-table-column prop="createdAt" label="创建时间" width="180" />
+          <el-table-column label="操作" width="160">
+            <template #default="scope">
+              <el-button size="small" type="primary" :disabled="!getZipUrl(scope.row)" @click="downloadHistoryZip(scope.row)">批量下载</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </el-card>
+
     <!-- 主要内容区域 -->
     <div class="main-content">
       <el-row :gutter="20">
         <!-- 左侧：文件上传区域 -->
         <el-col :span="12">
           <!-- Excel文件上传 -->
-          <el-card class="upload-card" shadow="hover">
+          <el-card class="upload-card" shadow="hover" ref="topUploadCard">
             <template #header>
               <div class="card-header">
                 <span class="step-number">1</span>
@@ -317,6 +342,12 @@ import { handleError, safeAsync } from '@/utils/errorHandler';
 
 export default defineComponent({
   name: 'DocumentConvert',
+  props: {
+    hideHistory: {
+      type: Boolean,
+      default: false
+    }
+  },
   components: {
     DocumentAdd,
     Document,
@@ -327,7 +358,45 @@ export default defineComponent({
     Download,
     Warning
   },
-  setup() {
+  setup(props) {
+    // 历史记录
+    const loadingHistory = ref(false);
+    const historyList = ref([]);
+    const topUploadCard = ref(null);
+    const hideHistory = ref(!!props.hideHistory);
+
+    const getZipUrl = (row) => row?.zip_url || row?.zipUrl || row?.result?.zip_url;
+    const downloadHistoryZip = (row) => {
+      const url = getZipUrl(row);
+      if (!url) return;
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'words.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('开始下载批量压缩包');
+    };
+
+    const startNewTaskFromTop = () => {
+      restartTask();
+      // 滚动到上传区域
+      setTimeout(() => {
+        topUploadCard.value?.$el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    };
+
+    const loadHistory = async () => {
+      try {
+        loadingHistory.value = true;
+        const res = await documentApi.listHistory({ page: 1, size: 10 });
+        historyList.value = res?.records || res?.list || [];
+      } catch (e) {
+        console.error('加载历史记录失败', e);
+      } finally {
+        loadingHistory.value = false;
+      }
+    };
     const excelFileInput = ref(null);
     const wordFileInput = ref(null);
     const excelFile = ref(null);
@@ -1059,6 +1128,11 @@ export default defineComponent({
     onMounted(() => {
       if (excelFileInput.value) excelFileInput.value.value = '';
       if (wordFileInput.value) wordFileInput.value.value = '';
+      // 通过 URL 或外部 props 控制是否隐藏历史记录
+      const params = new URLSearchParams(location.search)
+      const paramHide = params.get('hideHistory') === '1'
+      hideHistory.value = !!props.hideHistory || paramHide
+      if (!hideHistory.value) loadHistory();
     });
 
     // 组件卸载时清除轮询
@@ -1096,6 +1170,13 @@ export default defineComponent({
       copyVarCode,
       zipStatus,
       restartTask,
+      startNewTaskFromTop,
+      loadingHistory,
+      historyList,
+      downloadHistoryZip,
+      getZipUrl,
+      topUploadCard,
+      hideHistory,
       resetTask,
       copyWechatId,
       retryParseExcel,
@@ -1141,6 +1222,14 @@ export default defineComponent({
 .result-card, 
 .error-card {
   margin-bottom: 20px;
+}
+
+.history-card :deep(.el-card__header) {
+  padding: 14px 16px;
+}
+
+.history-card .card-header .el-button {
+  font-weight: 600;
 }
 
 .result-card {

@@ -274,7 +274,7 @@
               accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
               class="upload-btn"
             >
-              <el-button type="dashed">
+              <el-button type="primary" plain>
                 <el-icon><Plus /></el-icon>
                 添加附件
               </el-button>
@@ -335,10 +335,22 @@ const feedbackForm = reactive({
 })
 
 // 反馈表单验证规则
+const phoneRegex = /^(?:\+?86)?1[3-9]\d{9}$/
+const emailRegex = /^(?:[a-zA-Z0-9_\-.+])+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/
+
 const feedbackRules = {
   contact: [
     { required: true, message: '请输入联系方式', trigger: 'blur' },
-    { min: 3, max: 50, message: '联系方式长度在 3 到 50 个字符', trigger: 'blur' }
+    { validator: (_rule, value, callback) => {
+        if (!value) return callback(new Error('请输入联系方式'))
+        const isPhone = phoneRegex.test(value)
+        const isEmail = emailRegex.test(value)
+        if (!isPhone && !isEmail) {
+          callback(new Error('联系方式必须为有效的手机号或邮箱'))
+        } else {
+          callback()
+        }
+      }, trigger: 'blur' }
   ],
   type: [
     { required: true, message: '请选择问题类型', trigger: 'change' }
@@ -442,16 +454,11 @@ const handleSubmitFeedback = async () => {
     
     // 提交反馈
     const result = await submitFeedback(submitData)
-    
-    if (result.success) {
-      ElMessage.success('反馈提交成功，我们会尽快处理')
+    ElMessage.success('反馈提交成功，我们会尽快处理')
       feedbackVisible.value = false
       handleResetFeedbackForm()
       // 刷新反馈列表
       loadMyFeedback()
-    } else {
-      ElMessage.error(result.message || '提交失败')
-    }
   } catch (error) {
     console.error('提交反馈失败:', error)
     ElMessage.error('提交失败，请重试')

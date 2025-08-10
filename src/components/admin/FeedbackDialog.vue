@@ -124,9 +124,22 @@ const form = reactive({
   attachments: []
 })
 
+const phoneRegex = /^(?:\+?86)?1[3-9]\d{9}$/
+const emailRegex = /^(?:[a-zA-Z0-9_\-.+])+@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$/
+
 const rules = {
   contact: [
-    { required: true, message: '请输入联系方式', trigger: 'blur' }
+    { required: true, message: '请输入联系方式', trigger: 'blur' },
+    { validator: (_rule, value, callback) => {
+        if (!value) return callback(new Error('请输入联系方式'))
+        const isPhone = phoneRegex.test(value)
+        const isEmail = emailRegex.test(value)
+        if (!isPhone && !isEmail) {
+          callback(new Error('联系方式必须为有效的手机号或邮箱'))
+        } else {
+          callback()
+        }
+      }, trigger: 'blur' }
   ],
   type: [
     { required: true, message: '请选择问题类型', trigger: 'change' }
@@ -236,6 +249,7 @@ const handleSubmit = async () => {
     form.attachments = []
     
   } catch (error) {
+    debugger
     console.error('提交失败:', error)
     ElMessage.error(error.message || '提交失败，请重试')
   } finally {
