@@ -26,7 +26,7 @@
         <span>Excel转Word</span>
       </el-menu-item>
 
-      <el-sub-menu index="form" class="hidden-menu">
+      <el-sub-menu index="form" class="hidden-menu" v-if="false">
         <template #title>
           <el-icon><Collection /></el-icon>
           <span>表单管理</span>
@@ -36,7 +36,7 @@
         <el-menu-item index="/admin/form/formily">Formily设计器</el-menu-item>
       </el-sub-menu>
 
-      <el-sub-menu index="qrcode" class="hidden-menu">
+      <el-sub-menu index="qrcode" class="hidden-menu" v-if="false">
         <template #title>
           <el-icon><Picture /></el-icon>
           <span>二维码管理</span>

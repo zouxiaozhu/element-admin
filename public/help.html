@@ -100,6 +100,49 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
+        /* CTA 区域 */
+        .cta-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 16px 0 24px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all .2s ease;
+        }
+
+        .btn.primary {
+            color: #fff;
+            background: linear-gradient(135deg, #409EFF, #66B1FF);
+            box-shadow: 0 8px 24px rgba(64, 158, 255, .25);
+        }
+
+        .btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 28px rgba(64, 158, 255, .35);
+        }
+
+        .btn.outline {
+            color: #409EFF;
+            border: 2px solid #8cc5ff;
+            background: #fff;
+        }
+
+        .btn.outline:hover {
+            background: #f5fbff;
+        }
+
+        .btn.link {
+            color: #606266;
+        }
+
         .section {
             margin-bottom: 40px;
         }
@@ -257,6 +300,12 @@
             <p>专业的Excel文件管理和数据转换工具 - 让数据处理更简单高效</p>
         </div>
 
+        <div class="cta-buttons">
+            <a class="btn primary" href="/admin/document-convert">立即开始 · Excel转Word</a>
+            <a class="btn outline" href="/admin/login">登录后台</a>
+            <a class="btn link" href="/excel-search?fileCoding=">试用 · Excel搜索（填入编码）</a>
+        </div>
+
         <div class="content">
             <div class="section">
                 <h2>🎯 系统核心功能</h2>
@@ -276,16 +325,7 @@
                         <h4>智能数据搜索</h4>
                         <p>提供多条件搜索功能，支持模糊匹配、精确匹配和逻辑操作，快速定位所需数据。</p>
                     </div>
-                    <div class="feature-card">
-                        <div class="icon">📱</div>
-                        <h4>二维码生成</h4>
-                        <p>生成各种类型的二维码（URL、文本、名片、WiFi等），支持批量操作和自定义样式设计。</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="icon">📋</div>
-                        <h4>表单设计器</h4>
-                        <p>可视化表单设计器，支持拖拽式表单构建，自定义字段配置，快速创建专业表单。</p>
-                    </div>
+
                     <div class="feature-card">
                         <div class="icon">💬</div>
                         <h4>用户反馈系统</h4>
@@ -328,13 +368,7 @@
                     <li>使用逻辑操作符（AND/OR）组合条件</li>
                 </ul>
 
-                <h3>二维码使用技巧</h3>
-                <ul>
-                    <li>选择合适的二维码类型（URL、文本、名片等）</li>
-                    <li>调整二维码大小和纠错级别</li>
-                    <li>使用自定义颜色提升品牌识别度</li>
-                    <li>批量生成时注意文件命名规范</li>
-                </ul>
+
             </div>
 
             <div class="section">
@@ -380,8 +414,7 @@
                     <li><strong>文件管理</strong>：支持Excel、Word文件上传、解析和管理</li>
                     <li><strong>数据转换</strong>：Excel到Word的批量数据转换</li>
                     <li><strong>搜索系统</strong>：多条件智能搜索和数据过滤</li>
-                    <li><strong>二维码生成</strong>：多种类型二维码的生成和管理</li>
-                    <li><strong>表单设计</strong>：可视化表单构建器</li>
+
                     <li><strong>用户反馈</strong>：完整的反馈管理系统</li>
                     <li><strong>通知系统</strong>：实时通知和消息提醒</li>
                 </ul>
