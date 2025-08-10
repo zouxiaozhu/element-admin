@@ -17,9 +17,7 @@ npm<template>
               <div class="card-header">
                 <span class="step-number">1</span>
                 <span class="step-title">上传Excel文件</span>
-                <span v-if="excelFileUrl && excelCountdownMinutes >= 0" class="countdown">
-                  {{ excelCountdownMinutes }}:{{ excelCountdownSeconds.toString().padStart(2, '0') }}
-                </span>
+                
               </div>
             </template>
             
@@ -33,7 +31,7 @@ npm<template>
               />
               
               <div class="upload-area" @click="triggerExcelUpload">
-                <el-icon class="upload-icon" size="36">
+                <el-icon class="upload-icon" size="28">
                   <DocumentAdd />
                 </el-icon>
                 <div class="upload-text">
@@ -97,9 +95,7 @@ npm<template>
               <div class="card-header">
                 <span class="step-number">2</span>
                 <span class="step-title">上传Word模板</span>
-                <span v-if="wordFileUrl && wordCountdownMinutes >= 0" class="countdown">
-                  {{ wordCountdownMinutes }}:{{ wordCountdownSeconds.toString().padStart(2, '0') }}
-                </span>
+                
               </div>
             </template>
             
@@ -113,7 +109,7 @@ npm<template>
               />
               
               <div class="upload-area" @click="triggerWordUpload">
-                <el-icon class="upload-icon" size="36">
+                <el-icon class="upload-icon" size="28">
                   <DocumentAdd />
                 </el-icon>
                 <div class="upload-text">
@@ -147,8 +143,9 @@ npm<template>
             </template>
             
             <div class="convert-section">
-              <el-button 
-                type="primary" 
+              <el-button
+                v-if="!isCompleted"
+                type="primary"
                 size="large"
                 :loading="isConverting"
                 :disabled="!excelFile || !wordFile || excelVars.length === 0"
@@ -156,6 +153,15 @@ npm<template>
                 style="width: 100%"
               >
                 {{ isConverting ? '转换中...' : '开始转换' }}
+              </el-button>
+              <el-button
+                v-else
+                type="warning"
+                size="large"
+                style="width: 100%"
+                @click="resetTask"
+              >
+                重置任务
               </el-button>
               
               <div v-if="progress > 0" class="progress-section">
@@ -196,17 +202,16 @@ npm<template>
               <div class="card-header">
                 <span>转换结果</span>
                 <div class="result-actions">
-                  <span v-if="countdownMinutes >= 0 && (convertedFiles.length > 0 || (zipStatus.zip_end && zipStatus.zip_success))" class="countdown">
-                    自动清除：{{ countdownMinutes }}:{{ countdownSeconds.toString().padStart(2, '0') }}
-                  </span>
                   <el-button 
-                    v-if="zipStatus.zip_end && zipStatus.zip_success" 
+                    v-if="zipStatus.zip_path"
                     type="primary" 
                     size="small"
-                    @click="downloadAllSelected"
+                    :loading="isDownloadingZip"
+                    @click="downloadZipByUrl"
                   >
-                    下载全部文件
+                    批量下载
                   </el-button>
+                
                 </div>
               </div>
             </template>
@@ -217,16 +222,40 @@ npm<template>
                 <span>{{ zipStatus.zip_text || '转换完成！' }}</span>
               </div>
               
-              <div v-if="sortedFiles.length > 0" class="files-list">
-                <div 
-                  v-for="file in sortedFiles" 
-                  :key="file.id" 
-                  class="file-item"
-                  @click="downloadFile(file)"
-                >
-                  <el-icon><Document /></el-icon>
-                  <span class="file-name">{{ file.name }}</span>
-                  <el-icon class="download-icon"><Download /></el-icon>
+              <div v-if="sortedFiles.length > 0" class="files-container">
+                <div class="files-header-fixed">
+                  <span class="files-count">共 {{ sortedFiles.length }} 个文件</span>
+                  <div class="header-actions">
+                    
+                    <el-button 
+                      type="warning" 
+                      size="small"
+                      @click="resetTask"
+                    >
+                      重置任务
+                    </el-button>
+                  </div>
+                </div>
+                <div class="files-list">
+                  <div 
+                    v-for="file in sortedFiles" 
+                    :key="file.id" 
+                    class="file-item"
+                  >
+                    <el-icon><Document /></el-icon>
+                    <span class="file-name">{{ file.name }}</span>
+                    <el-tooltip content="下载该文件" placement="top">
+                      <el-button 
+                        type="primary" 
+                        size="small"
+                        class="download-btn"
+                        @click.stop="downloadFile(file)"
+                      >
+                        <el-icon><Download /></el-icon>
+                        下载
+                      </el-button>
+                    </el-tooltip>
+                  </div>
                 </div>
               </div>
             </div>
@@ -263,26 +292,14 @@ npm<template>
           <el-button @click="showQrCode = false">关闭</el-button>
         </template>
       </el-dialog>
-
-      <!-- Toast消息 -->
-      <el-dialog 
-        v-model="showToastMessage" 
-        :show-close="false"
-        width="300px"
-        align-center
-        class="toast-dialog"
-      >
-        <div class="toast-content">
-          <el-icon class="success-icon"><CircleCheck /></el-icon>
-          <span>{{ toastMessage }}</span>
-        </div>
-      </el-dialog>
+      
     </div>
   </div>
 </template>
 
 <script>
 import { defineComponent, ref, onBeforeUnmount, computed, onMounted } from 'vue';
+import { ElMessage } from 'element-plus';
 import { 
   DocumentAdd, 
   Document, 
@@ -337,10 +354,8 @@ export default defineComponent({
     const excelVars = ref([]);
     const isParsingExcel = ref(false);
 
-    // 添加错误信息和吐司消息状态
+    // 错误信息
     const errorMessage = ref('');
-    const toastMessage = ref('');
-    const showToastMessage = ref(false);
 
     // 在setup中添加轮询计数器
     const pollingCount = ref(0);
@@ -353,28 +368,13 @@ export default defineComponent({
     const showQrCode = ref(false);
     const errorCode = ref(null);
 
-    // 添加倒计时相关变量
-    const countdownMinutes = ref(10);
-    const countdownSeconds = ref(0);
-    let countdownTimer = null;
+    // 倒计时已移除
 
-    // 添加文件倒计时相关变量
-    const excelCountdownMinutes = ref(10);
-    const excelCountdownSeconds = ref(0);
-    const wordCountdownMinutes = ref(10);
-    const wordCountdownSeconds = ref(0);
-    let excelCountdownTimer = null;
-    let wordCountdownTimer = null;
+    // 文件倒计时已移除
 
-    // 显示吐司消息的函数
-    const showToast = (message) => {
-      toastMessage.value = message;
-      showToastMessage.value = true;
-
-      // 3秒后自动关闭
-      setTimeout(() => {
-        showToastMessage.value = false;
-      }, 3000);
+    // 统一的轻量吐司
+    const showToast = (message, type = 'success') => {
+      ElMessage({ message, type, duration: 2000, showClose: false });
     };
 
     // 通用文件上传方法
@@ -438,6 +438,9 @@ export default defineComponent({
         pollingInterval = null;
       }
 
+      // 清理所有倒计时
+      
+
       // 重置任务相关状态
       if (resetType === 'all' || resetType === 'task') {
         taskId.value = null;
@@ -460,81 +463,82 @@ export default defineComponent({
       if (resetType === 'all' || resetType === 'excel') {
         excelVars.value = [];
         isParsingExcel.value = false;
+        excelFile.value = null;
         excelFileUrl.value = '';
       }
 
       // 重置Word文件URL
       if (resetType === 'all' || resetType === 'word') {
+        wordFile.value = null;
         wordFileUrl.value = '';
       }
+
+      // 重置文件输入
+      if (excelFileInput.value) excelFileInput.value.value = '';
+      if (wordFileInput.value) wordFileInput.value.value = '';
     };
 
     const handleExcelUpload = (event) => {
-      const target = event.target;
-      if (target.files && target.files.length > 0) {
-        resetState('excel');
-
-        const file = target.files[0];
-
-        // 检查文件大小 (100MB)
-        if (file.size > 100 * 1024 * 1024) {
-          errorMessage.value = 'Excel文件大小不能超过100MB';
-          return;
-        }
-
-        excelFile.value = file;
-        statusMessage.value = `Excel文件已选择: ${excelFile.value.name}`;
-        errorMessage.value = '';
-
-        // 上传Excel后立即解析变量
-        parseExcelVars().then(() => {
-          if (excelFileUrl.value) {
-            startExcelCountdown();
-          }
-        });
+      const target = event && event.target ? event.target : null;
+      const selectedFile = target && target.files && target.files.length > 0 ? target.files[0] : null;
+      if (!selectedFile) {
+        return; // 用户取消选择或未选择文件
       }
+
+      // 先读取文件再重置，避免resetState清空input导致files丢失
+      resetState('excel');
+
+      // 检查文件大小 (100MB)
+      if (selectedFile.size > 100 * 1024 * 1024) {
+        errorMessage.value = 'Excel文件大小不能超过100MB';
+        return;
+      }
+
+      excelFile.value = selectedFile;
+      statusMessage.value = `Excel文件已选择: ${excelFile.value.name}`;
+      errorMessage.value = '';
+
+      // 上传Excel后立即解析变量
+      parseExcelVars();
     };
 
     const handleWordUpload = (event) => {
-      const target = event.target;
-      if (target.files && target.files.length > 0) {
-        resetState('word');
-
-        const file = target.files[0];
-
-        // 检查文件大小 (10MB)
-        if (file.size > 10 * 1024 * 1024) {
-          errorMessage.value = 'Word文件大小不能超过10MB';
-          return;
-        }
-
-        // 检查文件类型
-        if (!file.name.endsWith('.docx')) {
-          errorMessage.value = '只支持.docx格式的Word文件';
-          return;
-        }
-
-        wordFile.value = file;
-        statusMessage.value = `Word文件已选择: ${wordFile.value.name}`;
-        errorMessage.value = '';
-
-        // 上传Word文件
-       documentApi.uploadFile(file, 'EXCEL_TO_WORD_WORD')
-          .then(fileData => {
-            wordFileUrl.value = fileData;
-            console.log('Word文件上传成功:', fileData);
-            startWordCountdown();
-
-            if (!excelFile.value && excelVars.value.length === 0) {
-              statusMessage.value = '请上传Excel文件以获取变量信息';
-            }
-          })
-          .catch(err => {
-            console.error('Word文件上传失败:', err);
-            errorMessage.value = 'Word文件上传失败，请重试';
-            wordFileUrl.value = '';
-          });
+      const target = event && event.target ? event.target : null;
+      const selectedFile = target && target.files && target.files.length > 0 ? target.files[0] : null;
+      if (!selectedFile) {
+        return; // 用户取消选择或未选择文件
       }
+
+      // 先读取文件再重置，避免resetState清空input导致files丢失
+      resetState('word');
+
+      // 检查文件大小 (10MB)
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        errorMessage.value = 'Word文件大小不能超过10MB';
+        return;
+      }
+
+      // 检查文件类型
+      if (!selectedFile.name.endsWith('.docx')) {
+        errorMessage.value = '只支持.docx格式的Word文件';
+        return;
+      }
+
+      wordFile.value = selectedFile;
+      statusMessage.value = `Word文件已选择: ${wordFile.value.name}`;
+      errorMessage.value = '';
+
+      // 上传Word文件
+      documentApi.uploadFile(selectedFile, 'EXCEL_TO_WORD_WORD')
+        .then(fileData => {
+          wordFileUrl.value = fileData;
+          console.log('Word文件上传成功:', fileData);
+          
+        })
+        .catch(err => {
+          console.error('Word文件上传失败:', err);
+          errorMessage.value = 'Word文件上传失败，请重试';
+        });
     };
 
     const startConversion = async () => {
@@ -564,7 +568,8 @@ export default defineComponent({
           word: wordFileUrl.value,
         });
 
-        taskId.value = response.task.task_id;
+  
+        taskId.value = response?.task?.taskId || response?.task?.task_id;
         statusMessage.value = '转换任务已创建，开始处理...';
         progress.value = 0;
 
@@ -611,7 +616,7 @@ export default defineComponent({
 
         pollingCount.value++;
 
-        if (pollingCount.value > 120) { // 最大轮询次数
+        if (pollingCount.value > 300) { // 最大轮询次数 (10分钟)
           if (pollingInterval) {
             clearInterval(pollingInterval);
           }
@@ -622,17 +627,14 @@ export default defineComponent({
         }
 
         try {
-          const excludeIdsParam = excludeIds.value.join(',');
-          
           const response = await documentApi.getTransferStatus({
-            task_id: taskId.value,
-            exclude_ids: excludeIdsParam,
-            only_task: false
+            taskId: taskId.value,
+            onlyTask:false,
+            excludeIds:excludeIds.value
           });
+          const { transferTasks, commonTask } = response;
 
-          const { common_task, transfer_task } = response;
-
-          if (!common_task) {
+          if (!commonTask) {
             errorMessage.value = '服务器返回数据异常，任务信息不存在';
             if (pollingInterval) {
               clearInterval(pollingInterval);
@@ -641,88 +643,272 @@ export default defineComponent({
             return;
           }
 
+          // zip_url 的赋值改由 processTransferTasks 统一处理
+
+          // 调试信息
+          console.log('任务状态:', commonTask.status, '任务ID:', commonTask.taskId, '进度:', commonTask.completeCount, '/', commonTask.exceptCount);
+          if (transferTasks && transferTasks.length > 0) {
+            const successCount = transferTasks.filter(t => t.status === 'SUCCESS').length;
+            console.log(`转换任务: ${successCount}/${transferTasks.length} 已完成`);
+          }
+
           // 更新进度
-          if (common_task.except_count > 0) {
-            progress.value = Math.floor((common_task.complete_count / common_task.except_count) * 100);
+          if (transferTasks && transferTasks.length > 0) {
+            // 根据转换任务的状态计算进度
+            const successCount = transferTasks.filter(t => t.status === 'SUCCESS').length;
+            const totalCount = transferTasks.length;
+            progress.value = Math.floor((successCount / totalCount) * 100);
+          } else if (commonTask.exceptCount > 0) {
+            const completeCount = commonTask.completeCount || 0;
+            progress.value = Math.floor((completeCount / commonTask.exceptCount) * 100);
+          } else {
+            // 如果没有进度信息，根据状态设置进度
+            switch (commonTask.status) {
+              case 'PENDING':
+                progress.value = 10;
+                break;
+              case 'PROCESSING':
+              case 'RUNNING':
+                progress.value = 50;
+                break;
+              case 'SUCCESS':
+              case 'COMPLETED':
+                progress.value = 100;
+                break;
+              default:
+                progress.value = 25;
+            }
           }
 
           // 根据任务状态更新提示信息
-          switch (common_task.status) {
-            case 'processing':
-              statusMessage.value = `正在处理中... (${common_task.complete_count}/${common_task.except_count})`;
-              break;
-            case 'success':
-              if (common_task.result) {
-                try {
-                  const zipResult = common_task.result;
-                  zipStatus.value = { ...zipResult };
-                  statusMessage.value = zipResult.zip_text || '转换完成！';
-
-                  if (zipStatus.value.zip_end && zipStatus.value.zip_success) {
-                    startCountdown();
+          switch (commonTask.status) {
+            case 'PENDING':
+              // 检查是否有已完成的转换任务
+              if (transferTasks && transferTasks.length > 0) {
+                const successCount = transferTasks.filter(t => t.status === 'SUCCESS').length;
+                const totalCount = transferTasks.length;
+                
+                if (successCount > 0) {
+                  statusMessage.value = `正在处理中... (${successCount}/${totalCount})`;
+                  
+                  // 处理已完成的转换任务
+                  processTransferTasks(transferTasks, commonTask);
+                  
+                  // 如果所有任务都完成了，显示完成状态
+                  if (successCount === totalCount) {
+                    statusMessage.value = `转换完成！共生成 ${successCount} 个文件`;
+                    showToast(`转换完成！共生成 ${successCount} 个文件`);
+                    if (pollingInterval) {
+                      clearInterval(pollingInterval);
+                    }
+                    isConverting.value = false;
                   }
-                } catch (e) {
-                  console.error('解析zip状态失败:', e);
-                  statusMessage.value = '转换完成！';
+                } else {
+                  statusMessage.value = `任务等待中... (ID: ${commonTask.taskId})`;
                 }
-              }
-
-              if (zipStatus.value.zip_end && zipStatus.value.zip_success) {
-                if (pollingInterval) {
-                  clearInterval(pollingInterval);
-                }
-                isConverting.value = false;
+              } else {
+                statusMessage.value = `任务等待中... (ID: ${commonTask.taskId})`;
               }
               break;
-            case 'fail':
+            case 'PROCESSING':
+              const completeCount = commonTask.completeCount || 0;
+              statusMessage.value = `正在处理中... (${completeCount}/${commonTask.exceptCount})`;
+              // 实时处理已完成的子任务，逐步展示结果
+              if (transferTasks && transferTasks.length > 0) {
+                processTransferTasks(transferTasks, commonTask);
+              }
+              break;
+            case 'RUNNING':
+              const runningCompleteCount = commonTask.completeCount || 0;
+              statusMessage.value = `正在运行中... (${runningCompleteCount}/${commonTask.exceptCount})`;
+              // 实时处理已完成的子任务，逐步展示结果
+              if (transferTasks && transferTasks.length > 0) {
+                processTransferTasks(transferTasks, commonTask);
+              }
+              break;
+            case 'SUCCESS':
+              statusMessage.value = '转换完成！';
+              
+              // 处理转换任务列表
+              if (transferTasks && transferTasks.length > 0) {
+                const processedCount = processTransferTasks(transferTasks, commonTask);
+                
+                // 显示成功提示
+                showToast(`转换完成！共生成 ${transferTasks.filter(t => t.status === 'SUCCESS').length} 个文件`);
+              }
+              
+              // 显示任务变量信息
+              if (commonTask.payload && commonTask.payload.wordVars && commonTask.payload.wordVars.length > 0) {
+                console.log('任务变量:', commonTask.payload.wordVars);
+              }
+              
+              if (pollingInterval) {
+                clearInterval(pollingInterval);
+              }
+              isConverting.value = false;
+              break;
+            case 'FAILED':
               statusMessage.value = '转换失败，请重试！';
+              errorMessage.value = commonTask.errorMessage || '转换过程中发生错误';
+              if (pollingInterval) {
+                clearInterval(pollingInterval);
+              }
+              isConverting.value = false;
+              break;
+            case 'COMPLETED':
+              statusMessage.value = '转换完成！';
+              
+              // 处理转换任务列表
+              if (transferTasks && transferTasks.length > 0) {
+                const processedCount = processTransferTasks(transferTasks, commonTask);
+                
+                // 显示成功提示
+                showToast(`转换完成！共生成 ${transferTasks.filter(t => t.status === 'SUCCESS').length} 个文件`);
+              }
+              
+              // 显示任务变量信息
+              if (commonTask.payload && commonTask.payload.wordVars && commonTask.payload.wordVars.length > 0) {
+                console.log('任务变量:', commonTask.payload.wordVars);
+              }
+              
               if (pollingInterval) {
                 clearInterval(pollingInterval);
               }
               isConverting.value = false;
               break;
             default:
-              statusMessage.value = `处理中... (${common_task.complete_count}/${common_task.except_count})`;
-          }
-
-          // 如果有新的转换文件，添加到结果列表中
-          if (transfer_task && transfer_task.length > 0) {
-            transfer_task.forEach((task) => {
-              if (task.status === 'success') {
-                const fileName = task.remark?.file_name || `文件_${task.id}.docx`;
-                const fileUrl = task.file_url;
-
-                if (!excludeIds.value.includes(task.id)) {
-                  convertedFiles.value.push({
-                    id: task.id,
-                    name: fileName,
-                    url: fileUrl
-                  });
-
-                  excludeIds.value.push(task.id);
-                }
-              }
-            });
+              const currentCompleteCount = commonTask.completeCount || 0;
+              statusMessage.value = `处理中... (${currentCompleteCount}/${commonTask.exceptCount})`;
           }
         } catch (error) {
           console.error('轮询任务状态失败:', error);
           statusMessage.value = '获取任务状态失败，请刷新页面或重试';
-          errorMessage.value = '网络请求失败，请检查网络连接';
+          errorMessage.value = error.message || '网络请求失败，请检查网络连接';
           if (pollingInterval) {
             clearInterval(pollingInterval);
           }
           isConverting.value = false;
         }
-      }, 3000); // 3秒轮询间隔
+      }, 2000); // 2秒轮询间隔，提高响应速度
     };
 
-    const downloadFile = (file) => {
-      const link = document.createElement('a');
-      link.href = file.url;
-      link.download = file.name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    // 处理转换任务的公共函数
+    const processTransferTasks = (transferTasks, commonTask = null) => {
+      if (!transferTasks || transferTasks.length === 0) return 0;
+      
+      let processedCount = 0;
+      
+      // 同步 zipUrl（当后端已生成压缩包时）
+      try {
+        const zipUrl = commonTask?.result?.zip_url;
+        debugger
+        if (zipUrl && zipStatus.value.zip_path !== zipUrl) {
+          zipStatus.value.zip_path = zipUrl;
+          zipStatus.value.zip_end = true;
+          zipStatus.value.zip_success = true;
+          zipStatus.value.zip_text = '压缩包已生成，可批量下载';
+        }
+      } catch (e) {
+        console.log(e)
+        // 忽略
+      }
+
+      transferTasks.forEach((transferTask) => {
+        if (transferTask.status === 'SUCCESS') {
+          // 解析备注信息
+          let fileName = `转换结果_${transferTask.id}.docx`;
+          let remarkData = {};
+          
+          try {
+            if (transferTask.remark) {
+              remarkData = JSON.parse(transferTask.remark);
+              // 使用姓名作为文件名的一部分
+              if (remarkData.姓名) {
+                fileName = `${remarkData.姓名}_${transferTask.id}.docx`;
+              }
+            }
+          } catch (e) {
+            console.error('解析备注信息失败:', e);
+          }
+          
+          const existingFile = convertedFiles.value.find(f => f.id === transferTask.id);
+          
+          if (!existingFile) {
+            convertedFiles.value.push({
+              id: transferTask.id,
+              name: fileName,
+              taskId: transferTask.taskId,
+              transferTask: transferTask
+            });
+            // 记录已处理的ID，避免后续重复
+            if (!excludeIds.value.includes(transferTask.id)) {
+              excludeIds.value.push(transferTask.id);
+            }
+            processedCount++;
+          }
+        }
+      });
+      
+      return processedCount;
+    };
+
+    const downloadFile = async (file) => {
+      try {
+        if (file.taskId) {
+          // 使用新的API下载文件
+          const transferId = file.transferTask ? file.transferTask.id : null;
+          const blob = await documentApi.downloadFile(file.taskId, transferId);
+          
+          // 创建blob URL
+          const url = window.URL.createObjectURL(blob);
+          
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = file.name;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // 清理blob URL
+          window.URL.revokeObjectURL(url);
+          
+          showToast('文件下载成功！');
+        } else {
+          // 原有的下载方式
+          const link = document.createElement('a');
+          link.href = file.url;
+          link.download = file.name;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      } catch (error) {
+        console.error('下载文件失败:', error);
+        showToast('下载文件失败，请重试');
+      }
+    };
+
+    // 批量下载所有文件
+    const downloadAllFiles = async () => {
+      if (convertedFiles.value.length === 0) {
+        showToast('没有可下载的文件');
+        return;
+      }
+
+      showToast('开始批量下载...');
+      
+      for (let i = 0; i < convertedFiles.value.length; i++) {
+        const file = convertedFiles.value[i];
+        try {
+          await downloadFile(file);
+          // 添加延迟避免浏览器阻止多个下载
+          await new Promise(resolve => setTimeout(resolve, 500));
+        } catch (error) {
+          console.error(`下载文件 ${file.name} 失败:`, error);
+        }
+      }
+      
+      showToast('批量下载完成！');
     };
 
     const copyVarCode = (code) => {
@@ -765,6 +951,11 @@ export default defineComponent({
 
       statusMessage.value = '任务已重置，请先上传Excel文件获取变量，然后上传Word模板';
       showToast('任务已重置，请重新上传文件');
+    };
+
+    // 重置任务方法（作为restartTask的别名）
+    const resetTask = () => {
+      restartTask();
     };
 
     const copyWechatId = () => {
@@ -819,93 +1010,18 @@ export default defineComponent({
         });
     };
 
-    // 开始倒计时
-    const startCountdown = () => {
-      countdownMinutes.value = 10;
-      countdownSeconds.value = 0;
-
-      if (countdownTimer) {
-        clearInterval(countdownTimer);
-      }
-
-      countdownTimer = setInterval(() => {
-        if (countdownSeconds.value > 0) {
-          countdownSeconds.value--;
-        } else if (countdownMinutes.value > 0) {
-          countdownMinutes.value--;
-          countdownSeconds.value = 59;
-        } else {
-          if (countdownTimer) {
-            clearInterval(countdownTimer);
-            countdownTimer = null;
-          }
-          if (convertedFiles.value.length > 0) {
-            showToast('转换结果已自动清除');
-            resetState('task');
-          }
-        }
-      }, 1000);
-    };
-
-    // 开始Excel文件倒计时
-    const startExcelCountdown = () => {
-      excelCountdownMinutes.value = 10;
-      excelCountdownSeconds.value = 0;
-
-      if (excelCountdownTimer) {
-        clearInterval(excelCountdownTimer);
-      }
-
-      excelCountdownTimer = setInterval(() => {
-        if (excelCountdownSeconds.value > 0) {
-          excelCountdownSeconds.value--;
-        } else if (excelCountdownMinutes.value > 0) {
-          excelCountdownMinutes.value--;
-          excelCountdownSeconds.value = 59;
-        } else {
-          if (excelCountdownTimer) {
-            clearInterval(excelCountdownTimer);
-            excelCountdownTimer = null;
-          }
-          if (excelFileUrl.value) {
-            showToast('Excel文件已自动清除');
-            resetState('excel');
-          }
-        }
-      }, 1000);
-    };
-
-    // 开始Word文件倒计时
-    const startWordCountdown = () => {
-      wordCountdownMinutes.value = 10;
-      wordCountdownSeconds.value = 0;
-
-      if (wordCountdownTimer) {
-        clearInterval(wordCountdownTimer);
-      }
-
-      wordCountdownTimer = setInterval(() => {
-        if (wordCountdownSeconds.value > 0) {
-          wordCountdownSeconds.value--;
-        } else if (wordCountdownMinutes.value > 0) {
-          wordCountdownMinutes.value--;
-          wordCountdownSeconds.value = 59;
-        } else {
-          if (wordCountdownTimer) {
-            clearInterval(wordCountdownTimer);
-            wordCountdownTimer = null;
-          }
-          if (wordFileUrl.value) {
-            showToast('Word文件已自动清除');
-            resetState('word');
-          }
-        }
-      }, 1000);
-    };
+    // 倒计时函数已移除
 
     // 使用计算属性实现按ID倒序排列
     const sortedFiles = computed(() => {
       return [...convertedFiles.value].sort((a, b) => b.id - a.id);
+    });
+
+    // 是否已完成，用于切换按钮为“重置任务”
+    const isCompleted = computed(() => {
+      const hasFiles = convertedFiles.value && convertedFiles.value.length > 0;
+      const zipDone = zipStatus.value && zipStatus.value.zip_end && zipStatus.value.zip_success;
+      return !isConverting.value && (zipDone || (hasFiles && progress.value === 100));
     });
 
     const downloadAllSelected = () => {
@@ -914,6 +1030,29 @@ export default defineComponent({
         name: 'words.zip',
         url: zipStatus.value.zip_path
       });
+    };
+
+    const isDownloadingZip = ref(false);
+    const downloadZipByUrl = async () => {
+      try {
+        debugger
+        if (!zipStatus.value.zip_path) {
+          showToast('压缩包暂未生成，请稍后重试', 'warning');
+          return;
+        }
+        isDownloadingZip.value = true;
+        const link = document.createElement('a');
+        link.href = zipStatus.value.zip_path;
+        link.download = 'words.zip';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('开始下载批量压缩包');
+      } catch (e) {
+        showToast('下载失败，请稍后重试', 'error');
+      } finally {
+        isDownloadingZip.value = false;
+      }
     };
 
     // 组件挂载时初始化
@@ -926,15 +1065,6 @@ export default defineComponent({
     onBeforeUnmount(() => {
       if (pollingInterval) {
         clearInterval(pollingInterval);
-      }
-      if (countdownTimer) {
-        clearInterval(countdownTimer);
-      }
-      if (excelCountdownTimer) {
-        clearInterval(excelCountdownTimer);
-      }
-      if (wordCountdownTimer) {
-        clearInterval(wordCountdownTimer);
       }
     });
 
@@ -949,34 +1079,31 @@ export default defineComponent({
       isConverting,
       convertedFiles,
       errorMessage,
-      showToastMessage,
-      toastMessage,
-      showQrCode,
+      showToast,
       triggerExcelUpload,
       triggerWordUpload,
       handleExcelUpload,
       handleWordUpload,
       startConversion,
       downloadFile,
+      downloadAllFiles,
+      downloadZipByUrl,
       sortedFiles,
       downloadAllSelected,
+      isDownloadingZip,
       excelVars,
       isParsingExcel,
       copyVarCode,
       zipStatus,
       restartTask,
+      resetTask,
       copyWechatId,
       retryParseExcel,
       retryUploadWord,
       excelFileUrl,
       wordFileUrl,
-      countdownMinutes,
-      countdownSeconds,
-      excelCountdownMinutes,
-      excelCountdownSeconds,
-      wordCountdownMinutes,
-      wordCountdownSeconds,
-      errorCode
+      errorCode,
+      isCompleted
     };
   }
 });
@@ -1005,7 +1132,8 @@ export default defineComponent({
 }
 
 .main-content {
-  min-height: calc(100vh - 200px);
+  min-height: 100vh;
+  height: auto;
 }
 
 .upload-card, 
@@ -1016,13 +1144,50 @@ export default defineComponent({
 }
 
 .result-card {
-  height: calc(100vh - 240px);
-  overflow: hidden;
+  height: auto;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
 }
 
 .result-content {
-  height: calc(100vh - 320px);
-  overflow-y: auto;
+  display: block;
+}
+
+.result-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.result-content::-webkit-scrollbar-track {
+  background: #f5f7fa;
+  border-radius: 3px;
+}
+
+.result-content::-webkit-scrollbar-thumb {
+  background: #c0c4cc;
+  border-radius: 3px;
+}
+
+.result-content::-webkit-scrollbar-thumb:hover {
+  background: #909399;
+}
+
+.files-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.files-list::-webkit-scrollbar-track {
+  background: #f5f7fa;
+  border-radius: 3px;
+}
+
+.files-list::-webkit-scrollbar-thumb {
+  background: #c0c4cc;
+  border-radius: 3px;
+}
+
+.files-list::-webkit-scrollbar-thumb:hover {
+  background: #909399;
 }
 
 .card-header {
@@ -1049,13 +1214,7 @@ export default defineComponent({
   flex: 1;
 }
 
-.countdown {
-  font-size: 12px;
-  color: #909399;
-  background: #f5f7fa;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
+/* 倒计时样式已移除 */
 
 .upload-section {
   display: flex;
@@ -1066,7 +1225,7 @@ export default defineComponent({
 .upload-area {
   border: 2px dashed #dcdfe6;
   border-radius: 8px;
-  padding: 30px 15px;
+  padding: 20px 12px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s;
@@ -1231,19 +1390,73 @@ export default defineComponent({
 .files-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  padding: 12px 4px;
+}
+
+.files-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.files-header-fixed {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 2px solid #e4e7ed;
+  background: #f8f9fa;
+  border-radius: 6px 6px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.files-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 2px solid #e4e7ed;
+  margin-bottom: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.files-count {
+  font-size: 14px;
+  color: #606266;
+  font-weight: 500;
 }
 
 .file-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px;
+  padding: 14px 16px;
   border: 1px solid #e4e7ed;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s;
   background: #fafbfc;
+  margin-bottom: 6px;
+  min-height: 52px;
+}
+
+.file-item .el-icon {
+  font-size: 16px;
+  color: #606266;
+  flex-shrink: 0;
 }
 
 .file-item:hover {
@@ -1254,10 +1467,49 @@ export default defineComponent({
 .file-name {
   flex: 1;
   color: #303133;
+  word-break: break-word;
+  line-height: 1.3;
+  font-size: 14px;
+}
+
+.download-btn {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 12px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.download-btn:hover {
+  transform: scale(1.05);
 }
 
 .download-icon {
   color: #409eff;
+  font-size: 18px;
+  padding: 8px;
+  border-radius: 4px;
+  transition: all 0.3s;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.download-icon:hover {
+  background: #e6f7ff;
+  transform: scale(1.1);
+}
+
+/* 修复下载按钮大小 */
+.files-header-fixed .el-button {
+  padding: 8px 16px;
+  font-size: 14px;
+  height: 36px;
+}
+
+.result-actions .el-button {
+  padding: 8px 16px;
+  font-size: 14px;
+  height: 36px;
 }
 
 .error-header {
@@ -1324,12 +1576,16 @@ export default defineComponent({
   }
   
   .result-card {
-    height: auto;
+    height: 96vh;
   }
   
   .result-content {
     height: auto;
-    max-height: 400px;
+    max-height: calc(96vh - 120px);
+  }
+  
+  .files-list {
+    max-height: calc(96vh - 200px);
   }
 }
 
@@ -1358,8 +1614,30 @@ export default defineComponent({
     gap: 10px;
   }
   
+  .files-header,
+  .files-header-fixed {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .header-actions {
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  
+  .header-actions .el-button {
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 14px;
+    height: 40px;
+  }
+  
   .file-item {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    padding: 10px 12px;
+    min-height: 48px;
   }
   
   .wechat-id {
@@ -1368,12 +1646,49 @@ export default defineComponent({
   }
   
   .result-card {
-    height: auto;
+    min-height: 70vh;
+    height: 70vh;
   }
   
   .result-content {
+    min-height: 0;
     height: auto;
-    max-height: 300px;
+    max-height: calc(70vh - 120px);
+    overflow: hidden;
+  }
+  
+  .files-list {
+    padding: 8px 2px;
+    max-height: calc(70vh - 200px);
+  }
+  
+  .files-header,
+  .files-header-fixed {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  /* 移动端下载按钮样式 */
+  .files-header-fixed .el-button,
+  .result-actions .el-button {
+    padding: 10px 20px;
+    font-size: 14px;
+    height: 40px;
+    width: 100%;
+  }
+  
+  .download-icon {
+    font-size: 20px;
+    padding: 10px;
+  }
+
+  .download-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+    height: 32px;
+    width: auto;
+    margin-top: 0;
   }
 }
 </style> 

@@ -97,8 +97,8 @@ const props = defineProps({
   }
 })
 
-// 默认展开的子菜单
-const defaultOpeneds = ['form', 'qrcode', 'system']
+// 默认不展开子菜单，避免隐藏菜单触发过渡导致的 slot 警告
+const defaultOpeneds = []
 </script>
 
 <style scoped>

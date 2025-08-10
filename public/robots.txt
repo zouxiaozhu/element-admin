@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# 允许访问主要页面
+Allow: /admin/
+Allow: /help.html
+
+# 禁止访问API和私有文件
+Disallow: /api/
+Disallow: /src/
+Disallow: /node_modules/
+Disallow: /.env
+Disallow: /package.json
+Disallow: /package-lock.json
+
+# 站点地图
+Sitemap: https://your-domain.com/sitemap.xml
+
+# 爬取延迟（秒）
+Crawl-delay: 1

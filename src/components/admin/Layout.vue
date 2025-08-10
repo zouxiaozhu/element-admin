@@ -8,8 +8,7 @@
       </div>
     </div>
     
-    <!-- 悬浮球 -->
-    <FloatingBalls @feedback="showFeedbackDialog" />
+    
   </div>
 </template>
 
@@ -19,7 +18,7 @@ import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import Header from './Header.vue'
 import Sidebar from './Sidebar.vue'
-import FloatingBalls from './FloatingBalls.vue'
+// FloatingBalls 悬浮球已移除
 
 const route = useRoute()
 
@@ -28,11 +27,7 @@ const activeMenu = computed(() => {
   return route.path
 })
 
-// 显示反馈对话框
-const showFeedbackDialog = () => {
-  // 跳转到反馈页面
-  window.location.href = '/admin/feedback-submit'
-}
+// 悬浮球已移除，无需处理反馈入口
 </script>
 
 <style scoped>

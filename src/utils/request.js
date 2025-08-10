@@ -38,6 +38,11 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
     response => {
+        // 检查是否是 blob 响应
+        if (response.config.responseType === 'blob') {
+            return response.data
+        }
+
         // 检查是否是文件上传响应
         if (response.config.url && response.config.url.includes('/file/upload')) {
             // 文件上传接口直接返回数据
@@ -213,6 +218,15 @@ class RequestService {
                 'Content-Type': 'multipart/form-data'
             },
             onUploadProgress: onProgress
+        })
+    }
+
+    // GET 请求，返回 blob 数据
+    getBlob(url, params = {}, config = {}) {
+        return service.get(url, { 
+            params,
+            responseType: 'blob',
+            ...config
         })
     }
 }

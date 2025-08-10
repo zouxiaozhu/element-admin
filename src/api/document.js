@@ -25,7 +25,15 @@ export const documentApi = {
 
     // 获取转换状态
     getTransferStatus(data) {
-        return request.post('/api/office/transferStatus', data)
+        return request.postUrlencoded('/api/excel-to-word/task-process', data)
+    },
+
+    // 下载转换完成的文件
+    downloadFile(taskId, transferId = null) {
+        const url = transferId
+            ? `/api/excel-to-word/download?taskId=${taskId}&transferId=${transferId}`
+            : `/api/excel-to-word/download?taskId=${taskId}`;
+        return request.getBlob(url)
     },
 
     // 获取DOT信息

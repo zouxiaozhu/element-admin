@@ -4,7 +4,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>帮助中心 - Excel管理系统</title>
+
+    <!-- SEO Meta Tags -->
+    <title>Excel管理系统 - 专业的Excel文件管理和数据转换工具</title>
+    <meta name="description"
+        content="基于Vue 3 + Element Plus的Excel管理系统，提供Excel文件上传、数据解析、Word模板转换、二维码生成、表单设计等强大功能。支持批量数据处理、智能搜索、用户反馈管理，是企业数据管理的理想解决方案。">
+    <meta name="keywords" content="Excel管理系统,Excel文件管理,Word模板转换,二维码生成,表单设计,数据解析,批量处理,Vue3,Element Plus">
+    <meta name="author" content="Excel管理系统团队">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Excel管理系统 - 专业的Excel文件管理和数据转换工具">
+    <meta property="og:description"
+        content="基于Vue 3 + Element Plus的Excel管理系统，提供Excel文件上传、数据解析、Word模板转换、二维码生成、表单设计等强大功能。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-domain.com">
+    <meta property="og:image" content="https://your-domain.com/logo.png">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Excel管理系统 - 专业的Excel文件管理和数据转换工具">
+    <meta name="twitter:description"
+        content="基于Vue 3 + Element Plus的Excel管理系统，提供Excel文件上传、数据解析、Word模板转换、二维码生成、表单设计等强大功能。">
+
+    <!-- 结构化数据 -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Excel管理系统",
+      "description": "基于Vue 3 + Element Plus的Excel文件管理和数据转换工具",
+      "url": "https://your-domain.com",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "CNY"
+      },
+      "featureList": [
+        "Excel文件上传和解析",
+        "Word模板批量转换",
+        "二维码生成和管理",
+        "表单设计和构建",
+        "数据搜索和分析",
+        "用户反馈管理"
+      ]
+    }
+    </script>
+
     <style>
         * {
             margin: 0;
@@ -86,10 +134,23 @@
             padding: 20px;
             border-radius: 8px;
             border-left: 4px solid #3498db;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .feature-card h4 {
             color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .feature-card .icon {
+            font-size: 2rem;
+            color: #3498db;
             margin-bottom: 10px;
         }
 
@@ -145,6 +206,29 @@
             color: #34495e;
         }
 
+        .highlight-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .highlight-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 10px 0;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -168,107 +252,195 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>帮助中心</h1>
-            <p>Excel管理系统的使用指南和常见问题解答</p>
+            <h1>Excel管理系统帮助中心</h1>
+            <p>专业的Excel文件管理和数据转换工具 - 让数据处理更简单高效</p>
         </div>
 
         <div class="content">
             <div class="section">
-                <h2>系统功能介绍</h2>
+                <h2>🎯 系统核心功能</h2>
                 <div class="feature-grid">
                     <div class="feature-card">
+                        <div class="icon">📊</div>
                         <h4>Excel文件管理</h4>
-                        <p>支持Excel文件的上传、解析、搜索和管理，提供强大的数据处理功能。</p>
+                        <p>支持.xlsx、.xls格式文件上传，自动解析变量，智能提取数据字段，提供强大的Excel数据处理能力。</p>
                     </div>
                     <div class="feature-card">
-                        <h4>数据搜索</h4>
-                        <p>提供多条件搜索功能，支持模糊匹配、精确匹配和逻辑操作。</p>
+                        <div class="icon">📝</div>
+                        <h4>Word模板转换</h4>
+                        <p>将Excel数据批量填充到Word模板中，支持变量替换，自动生成多个Word文档，大幅提升工作效率。</p>
                     </div>
                     <div class="feature-card">
-                        <h4>表单设计</h4>
-                        <p>可视化表单设计器，支持拖拽式表单构建和自定义字段配置。</p>
+                        <div class="icon">🔍</div>
+                        <h4>智能数据搜索</h4>
+                        <p>提供多条件搜索功能，支持模糊匹配、精确匹配和逻辑操作，快速定位所需数据。</p>
                     </div>
                     <div class="feature-card">
-                        <h4>二维码管理</h4>
-                        <p>生成和管理各种类型的二维码，支持批量操作和自定义样式。</p>
+                        <div class="icon">📱</div>
+                        <h4>二维码生成</h4>
+                        <p>生成各种类型的二维码（URL、文本、名片、WiFi等），支持批量操作和自定义样式设计。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">📋</div>
+                        <h4>表单设计器</h4>
+                        <p>可视化表单设计器，支持拖拽式表单构建，自定义字段配置，快速创建专业表单。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">💬</div>
+                        <h4>用户反馈系统</h4>
+                        <p>完整的用户反馈管理，支持富文本编辑、截图上传、实时通知，提升用户体验。</p>
                     </div>
                 </div>
             </div>
 
             <div class="section">
-                <h2>快速开始</h2>
+                <h2>🚀 快速开始指南</h2>
                 <ol class="step-list">
-                    <li>登录系统后，您将看到仪表盘页面，这里显示了系统的整体概况。</li>
-                    <li>在左侧菜单中，您可以访问不同的功能模块。</li>
-                    <li>上传Excel文件：进入"Excel管理"页面，点击上传按钮选择文件。</li>
-                    <li>搜索数据：使用搜索框输入关键词，系统会实时显示匹配结果。</li>
-                    <li>创建表单：进入"表单管理"页面，使用表单设计器创建自定义表单。</li>
+                    <li><strong>登录系统</strong>：使用您的账号登录系统，进入主控制台。</li>
+                    <li><strong>Excel文件上传</strong>：进入"Excel管理"页面，上传包含数据的Excel文件，系统会自动解析变量。</li>
+                    <li><strong>Word模板上传</strong>：上传Word模板文件（.docx格式），在模板中使用{{变量名}}格式定义变量。</li>
+                    <li><strong>开始转换</strong>：点击"开始转换"按钮，系统将Excel数据批量填充到Word模板中。</li>
+                    <li><strong>下载结果</strong>：转换完成后，可以单个下载或批量下载生成的Word文档。</li>
+                    <li><strong>数据搜索</strong>：使用搜索功能快速查找特定数据，支持多条件组合搜索。</li>
                 </ol>
             </div>
 
             <div class="section">
-                <h2>常见问题</h2>
+                <h2>💡 使用技巧</h2>
+
+                <h3>Excel转Word最佳实践</h3>
+                <div class="highlight-box">
+                    <h4>📋 模板设计建议</h4>
+                    <ul>
+                        <li>在Word模板中使用{{变量名}}格式定义变量</li>
+                        <li>变量名应与Excel表格的列标题一致</li>
+                        <li>支持中文变量名，如{{姓名}}、{{部门}}</li>
+                        <li>可以在一行中使用多个变量</li>
+                    </ul>
+                </div>
+
+                <h3>数据搜索技巧</h3>
+                <ul>
+                    <li>使用引号进行精确搜索：<code>"张三"</code></li>
+                    <li>结合多个条件缩小搜索范围</li>
+                    <li>利用高级搜索功能提高效率</li>
+                    <li>使用逻辑操作符（AND/OR）组合条件</li>
+                </ul>
+
+                <h3>二维码使用技巧</h3>
+                <ul>
+                    <li>选择合适的二维码类型（URL、文本、名片等）</li>
+                    <li>调整二维码大小和纠错级别</li>
+                    <li>使用自定义颜色提升品牌识别度</li>
+                    <li>批量生成时注意文件命名规范</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>❓ 常见问题解答</h2>
 
                 <h3>Q: 支持哪些Excel文件格式？</h3>
-                <p>A: 系统支持.xlsx、.xls格式的Excel文件，建议使用.xlsx格式以获得更好的兼容性。</p>
+                <p>A: 系统支持.xlsx、.xls格式的Excel文件，建议使用.xlsx格式以获得更好的兼容性和性能。</p>
 
-                <h3>Q: 如何提高搜索效率？</h3>
-                <p>A: 使用精确的关键词，结合多个搜索条件，可以大大提高搜索的准确性。</p>
+                <h3>Q: Word模板中的变量格式是什么？</h3>
+                <p>A: 使用双大括号格式，如{{变量名}}。变量名应与Excel表格的列标题完全一致。</p>
 
-                <h3>Q: 表单数据如何保存？</p>
-                    <p>A: 表单数据会自动保存到数据库中，您可以在表单列表中查看和管理。</p>
+                <h3>Q: 如何提高转换成功率？</h3>
+                <p>A: 确保Excel文件格式规范，Word模板中的变量名与Excel列标题一致，文件大小不超过限制。</p>
 
-                    <h3>Q: 如何导出数据？</h3>
-                    <p>A: 在数据列表页面，点击"导出"按钮，选择导出格式即可下载数据。</p>
+                <h3>Q: 支持批量下载吗？</h3>
+                <p>A: 是的，转换完成后可以选择单个下载或使用"批量下载全部"功能一次性下载所有文件。</p>
 
-                    <h3>Q: 系统支持哪些浏览器？</h3>
-                    <p>A: 建议使用Chrome、Firefox、Safari、Edge等现代浏览器，确保最佳体验。</p>
+                <h3>Q: 如何重置任务？</h3>
+                <p>A: 转换完成后，点击"重置任务"按钮可以清空所有数据，重新开始新的转换任务。</p>
+
+                <h3>Q: 系统支持哪些浏览器？</h3>
+                <p>A: 建议使用Chrome、Firefox、Safari、Edge等现代浏览器，确保最佳体验和功能完整性。</p>
+
+                <h3>Q: 如何提交反馈或报告问题？</h3>
+                <p>A: 点击右下角悬浮球或右上角"联系我们"按钮，填写反馈表单并提交，我们会及时处理您的问题。</p>
             </div>
 
             <div class="section">
-                <h2>使用技巧</h2>
+                <h2>🔧 技术特性</h2>
 
-                <h3>数据管理</h3>
+                <h3>前端技术栈</h3>
+                <div class="code-block">
+                    框架：Vue 3 (Composition API)
+                    UI库：Element Plus
+                    构建工具：Vite
+                    语言：JavaScript/TypeScript
+                    路由：Vue Router
+                    HTTP客户端：Axios
+                </div>
+
+                <h3>核心功能模块</h3>
                 <ul>
-                    <li>定期备份重要数据</li>
-                    <li>使用有意义的文件名便于管理</li>
-                    <li>合理使用标签和分类功能</li>
+                    <li><strong>文件管理</strong>：支持Excel、Word文件上传、解析和管理</li>
+                    <li><strong>数据转换</strong>：Excel到Word的批量数据转换</li>
+                    <li><strong>搜索系统</strong>：多条件智能搜索和数据过滤</li>
+                    <li><strong>二维码生成</strong>：多种类型二维码的生成和管理</li>
+                    <li><strong>表单设计</strong>：可视化表单构建器</li>
+                    <li><strong>用户反馈</strong>：完整的反馈管理系统</li>
+                    <li><strong>通知系统</strong>：实时通知和消息提醒</li>
                 </ul>
 
-                <h3>搜索优化</h3>
-                <ul>
-                    <li>使用引号进行精确搜索</li>
-                    <li>结合多个条件缩小搜索范围</li>
-                    <li>利用高级搜索功能</li>
-                </ul>
-
-                <h3>表单设计</h3>
-                <ul>
-                    <li>设计简洁明了的表单布局</li>
-                    <li>合理设置必填字段</li>
-                    <li>测试表单功能确保正常工作</li>
-                </ul>
+                <h3>API接口规范</h3>
+                <div class="code-block">
+                    {
+                    "success": true,
+                    "code": 0,
+                    "message": "ok",
+                    "data": {
+                    "userInfo": { ... },
+                    "tokenInfo": { ... }
+                    }
+                    }
+                </div>
             </div>
 
             <div class="section">
-                <h2>联系我们</h2>
+                <h2>📞 联系我们</h2>
                 <div class="contact-info">
                     <h3>技术支持</h3>
                     <div class="contact-item">
                         <strong>邮箱：</strong>
-                        <span>support@example.com</span>
+                        <span>support@excel-admin.com</span>
                     </div>
                     <div class="contact-item">
-                        <strong>电话：</strong>
-                        <span>400-123-4567</span>
+                        <strong>微信：</strong>
+                        <span>Rqdll1</span>
                     </div>
                     <div class="contact-item">
                         <strong>工作时间：</strong>
                         <span>周一至周五 9:00-18:00</span>
                     </div>
                     <p style="margin-top: 15px;">
-                        如果您在使用过程中遇到任何问题，请随时联系我们。我们会在24小时内回复您的问题。
+                        如果您在使用过程中遇到任何问题，或有功能建议，请随时联系我们。我们会在24小时内回复您的问题。
+                        您也可以通过系统内的反馈功能提交问题，我们会优先处理。
                     </p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📈 系统优势</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🚀 高效处理</h4>
+                        <p>批量处理Excel数据，自动生成多个Word文档，大幅提升工作效率。</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🎯 智能解析</h4>
+                        <p>自动识别Excel变量，智能匹配Word模板，减少人工操作错误。</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔍 强大搜索</h4>
+                        <p>多条件搜索功能，快速定位所需数据，支持复杂查询条件。</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📱 响应式设计</h4>
+                        <p>完美适配PC和移动端，随时随地处理数据，提升使用体验。</p>
+                    </div>
                 </div>
             </div>
         </div>
