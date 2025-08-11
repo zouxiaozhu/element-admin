@@ -160,6 +160,7 @@ const handleRegister = async () => {
   
       try {
       const response = await authApi.register(registerForm)
+      debugger
       // 保存token和用户信息 - 使用userInfo字段
       setToken(response.tokenInfo.accessToken, registerForm.remember)
       setUserInfo(response.userInfo, registerForm.remember)
