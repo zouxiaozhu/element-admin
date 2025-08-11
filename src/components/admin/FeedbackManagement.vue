@@ -288,8 +288,7 @@ const replyFormRef = ref()
 const loadStats = async () => {
   try {
     const response = await getFeedbackStats()
-    if (response.success) {
-      const data = response.data
+      const data = response
       stats.value[0].value = data.total || 0
       stats.value[1].value = data.pending || 0
       stats.value[2].value = data.processing || 0
@@ -311,10 +310,9 @@ const loadFeedbackList = async () => {
     }
     
     const response = await getFeedbackList(params)
-    if (response.success) {
-      feedbackList.value = response.data.list || []
-      pagination.total = response.data.total || 0
-    }
+      feedbackList.value = response.list || []
+      pagination.total = response.total || 0
+    
   } catch (error) {
     console.error('获取反馈列表失败:', error)
     ElMessage.error('获取反馈列表失败')

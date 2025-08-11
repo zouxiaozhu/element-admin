@@ -177,9 +177,8 @@ const handleAttachmentUpload = async (file) => {
     const response = await dashboardApi.uploadFile(file, 'FEEDBACK')
     console.log('附件上传响应:', response)
     
-    if (response && response.success && response.data) {
       // 使用externalUrl作为文件地址
-      const fileUrl = response.data.externalUrl || response.data.internalUrl || response.data.path
+      const fileUrl = response.externalUrl || response.internalUrl || response.path
       form.attachments.push({
         name: file.name,
         size: file.size,
@@ -187,9 +186,7 @@ const handleAttachmentUpload = async (file) => {
         type: file.type
       })
       ElMessage.success('附件上传成功')
-    } else {
-      ElMessage.error('附件上传失败')
-    }
+  
   } catch (error) {
     console.error('附件上传失败:', error)
     ElMessage.error('附件上传失败')

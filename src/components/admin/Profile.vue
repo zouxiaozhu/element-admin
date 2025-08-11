@@ -139,13 +139,9 @@ const handleAvatarUpload = async (options) => {
     const uploadResponse = await dashboardApi.uploadFile(file, 'USER_AVATAR')
     console.log('头像上传响应:', uploadResponse)
     
-    // 检查上传是否成功并获取正确的响应数据
-    if (!uploadResponse || !uploadResponse.success) {
-      throw new Error(uploadResponse?.message || '头像上传失败')
-    }
     
     // 获取头像URL
-    const avatarUrl = uploadResponse.data?.externalUrl || uploadResponse.data?.internalUrl || uploadResponse.data?.path || uploadResponse.externalUrl || uploadResponse.url
+    const avatarUrl = uploadResponse?.externalUrl || uploadResponse?.internalUrl || uploadResponse?.path || uploadResponse.externalUrl || uploadResponse.url
     
     if (!avatarUrl) {
       throw new Error('无法获取头像URL')
