@@ -1,4 +1,4 @@
-npm<template>
+<template>
   <div class="document-convert">
     <!-- 页面标题 -->
     <div class="page-header">

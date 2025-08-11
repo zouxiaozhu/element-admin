@@ -240,10 +240,10 @@ import {
 
 // 统计数据
 const stats = ref([
-  { label: '总反馈', value: 0, icon: 'ChatDotRound', type: 'primary' },
-  { label: '待处理', value: 0, icon: 'Bell', type: 'warning' },
-  { label: '处理中', value: 0, icon: 'Setting', type: 'info' },
-  { label: '已回复', value: 0, icon: 'QuestionFilled', type: 'success' }
+  { label: '总反馈', value: 0, icon: ChatDotRound, type: 'primary' },
+  { label: '待处理', value: 0, icon: Bell, type: 'warning' },
+  { label: '处理中', value: 0, icon: Setting, type: 'info' },
+  { label: '已回复', value: 0, icon: QuestionFilled, type: 'success' }
 ])
 
 // 筛选表单
@@ -287,13 +287,11 @@ const replyFormRef = ref()
 // 获取统计数据
 const loadStats = async () => {
   try {
-    const response = await getFeedbackStats()
-      const data = response
-      stats.value[0].value = data.total || 0
-      stats.value[1].value = data.pending || 0
-      stats.value[2].value = data.processing || 0
-      stats.value[3].value = data.replied || 0
-    }
+    const data = await getFeedbackStats()
+    stats.value[0].value = data.total || 0
+    stats.value[1].value = data.pending || 0
+    stats.value[2].value = data.processing || 0
+    stats.value[3].value = data.replied || 0
   } catch (error) {
     console.error('获取统计数据失败:', error)
   }
