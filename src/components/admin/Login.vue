@@ -163,7 +163,6 @@ const handleRegister = async () => {
       // 保存token和用户信息 - 使用userInfo字段
       setToken(response.tokenInfo.accessToken, registerForm.remember)
       setUserInfo(response.userInfo, registerForm.remember)
-      
       // 处理记住密码
       if (registerForm.remember) {
         // 保存登录信息
