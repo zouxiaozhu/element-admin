@@ -307,6 +307,7 @@ import { ElMessage } from 'element-plus'
 import { Document, ChatDotRound, Close, Plus } from '@element-plus/icons-vue'
 import { getUserInfo } from '@/utils/auth.js'
 import { getMyFeedback, markFeedbackAsRead as apiMarkFeedbackAsRead, markReplyAsRead, submitFeedback } from '@/api/feedback'
+import { dashboardApi } from '@/api/dashboard.js'
 
 // 反馈列表
 const feedbackList = ref([])
@@ -409,20 +410,31 @@ const showFeedbackDialog = () => {
   feedbackVisible.value = true
 }
 
-// 处理附件上传
-const handleAttachmentUpload = (file) => {
+// 处理附件上传（调用上传接口并将返回值写入 attachments）
+const handleAttachmentUpload = async (file) => {
   const maxSize = 10 * 1024 * 1024 // 10MB
   if (file.size > maxSize) {
     ElMessage.error('文件大小不能超过10MB')
     return false
   }
-  
-  feedbackForm.attachments.push({
-    name: file.name,
-    size: file.size,
-    file: file
-  })
-  
+
+  try {
+    const response = await dashboardApi.uploadFile(file, 'FEEDBACK')
+    const fileUrl = response.externalUrl || response.internalUrl || response.path
+
+    feedbackForm.attachments.push({
+      name: file.name,
+      size: file.size,
+      url: fileUrl,
+      type: file.type
+    })
+
+    ElMessage.success('附件上传成功')
+  } catch (error) {
+    console.error('附件上传失败:', error)
+    ElMessage.error(error.message || '附件上传失败')
+  }
+
   return false // 阻止自动上传
 }
 
@@ -442,14 +454,8 @@ const handleSubmitFeedback = async () => {
     const submitData = {
       contact: feedbackForm.contact,
       type: feedbackForm.type,
-      description: feedbackForm.description
-    }
-    
-    // 如果有附件，需要先上传
-    if (feedbackForm.attachments.length > 0) {
-      // 这里应该实现文件上传逻辑
-      // const uploadedFiles = await uploadFiles(feedbackForm.attachments)
-      // submitData.attachments = uploadedFiles
+      description: feedbackForm.description,
+      attachments: feedbackForm.attachments
     }
     
     // 提交反馈
