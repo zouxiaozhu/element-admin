@@ -923,7 +923,7 @@ export default defineComponent({
 
     const downloadFile = async (file) => {
       try {
-          // 原有的下载方式
+          // 原有的下载方式n
           const link = document.createElement('a');
           link.href = file.transferTask.fileUrl;
           link.download = file.name;

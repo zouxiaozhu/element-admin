@@ -562,6 +562,21 @@ function editTask(row: Task) {
     editForm.value.extendData.searchHeaders = []
   }
   editForm.value.searchHeaders = [...editForm.value.extendData.searchHeaders]
+
+  // 如果没有可选字段列表，尝试动态加载一条详情数据来推断字段名
+  if (!Array.isArray(editForm.value.extendData.headers) || editForm.value.extendData.headers.length === 0) {
+    getExcelFileDetail(row.id, 1, 1)
+      .then(ret => {
+        const records = ret?.records || []
+        if (records.length > 0 && records[0].columnData) {
+          const headers = Object.keys(records[0].columnData)
+          editForm.value.extendData.headers = headers
+        }
+      })
+      .catch(() => {
+        // 忽略错误，保持现状
+      })
+  }
   editVisible.value = true
 }
 

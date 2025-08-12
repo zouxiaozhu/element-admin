@@ -165,6 +165,7 @@ const isMobile = ref(false) // 移动端检测
 const hasError = ref(false);
 // 计算属性
 const uniqueColumns = computed(() => {
+  console.log(excelMetaData.value)
   if (!excelMetaData.value) return []
   // 从数组数据中提取唯一的 columnKey
   return [...new Set(excelMetaData.value.map(item => item.columnKey))]

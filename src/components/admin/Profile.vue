@@ -181,11 +181,9 @@ const handleSave = async () => {
     // 调用authApi的updateUserInfo方法保存用户信息
     const response = await authApi.updateUserInfo(userForm)
     console.log('保存用户信息响应:', response)
-    
     // 检查更新是否成功
-    if (response && response.success) {
       // 从后端响应中获取完整的用户信息
-      const updatedUserInfo = response.data
+      const updatedUserInfo = response
       if (updatedUserInfo) {
         // 更新本地用户信息引用
         if (userInfo.value) {
@@ -206,9 +204,7 @@ const handleSave = async () => {
         }
       }
       ElMessage.success('保存成功!')
-    } else {
-      throw new Error(response?.message || '保存失败')
-    }
+   
   } catch (error) {
     console.error('保存失败:', error)
     ElMessage.error(error.message || '保存失败，请重试')
