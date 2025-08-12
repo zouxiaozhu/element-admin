@@ -24,7 +24,7 @@
           </div>
         </template>
         
-        <el-form :model="searchForm" :label-width="isMobile ? '80px' : '100px'" class="search-form">
+        <el-form :model="searchForm" :label-width="isMobile ? '80px' : '100px'" class="search-form" @submit.prevent>
           <el-row :gutter="isMobile ? 10 : 20">
             <el-col :xs="24" :sm="24" :md="12" :lg="8" v-for="column in uniqueColumns" :key="column">
               <el-form-item :label="column" class="search-form-item">
