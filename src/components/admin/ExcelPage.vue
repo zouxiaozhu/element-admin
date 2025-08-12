@@ -2,21 +2,34 @@
   <div class="excel-page">
     <el-card class="upload-card" style="margin-bottom:18px;">
       <div class="upload-container">
-        <div class="upload-actions">
-          <el-upload
-            ref="uploadRef"
-            class="excel-uploader"
-            :http-request="customUpload"
-            :show-file-list="true"
-            :on-success="handleUploadSuccess"
-            :on-error="handleUploadError"
-            :limit="1"
-            :on-exceed="handleExceed"
-            accept=".xls,.xlsx"
-          >
-            <el-button type="primary" :loading="isUploading">{{ isUploading ? '上传中...' : '上传Excel文件' }}</el-button>
-          </el-upload>
-          <el-button type="success" @click="parseExcel" :disabled="!uploadedFile || isUploading">解析Excel</el-button>
+        <!-- 流程步骤指示 -->
+        <el-steps :active="flowStep" finish-status="success" align-center class="flow-steps">
+          <el-step title="上传Excel" :description="isUploading ? '上传中…' : (uploadedFile ? '已上传' : '选择并上传文件')" />
+          <el-step title="解析Excel" :description="parseCompleted ? '解析成功' : (uploadedFile ? '准备解析' : '等待上传')" />
+          <el-step title="完成" description="查看任务并管理" />
+        </el-steps>
+        <div class="upload-actions-grid">
+          <div class="step-cell">
+            <el-upload
+              ref="uploadRef"
+              class="excel-uploader"
+              :http-request="customUpload"
+              :show-file-list="true"
+              :on-success="handleUploadSuccess"
+              :on-error="handleUploadError"
+              :limit="1"
+              :on-exceed="handleExceed"
+              accept=".xls,.xlsx"
+            >
+              <el-button type="primary" :loading="isUploading">{{ isUploading ? '上传中...' : '上传Excel文件' }}</el-button>
+            </el-upload>
+          </div>
+          <div class="step-cell">
+            <el-button type="success" @click="parseExcel" :disabled="!uploadedFile || isUploading">解析Excel</el-button>
+          </div>
+          <div class="step-cell">
+            <el-button @click="fetchTasks" :disabled="!parseCompleted" type="info">查看最新任务</el-button>
+          </div>
         </div>
         <div class="upload-info">
           <div class="upload-tip-left">
@@ -241,6 +254,7 @@ interface Task {
     fileType: string
     fileName: string
     fileUrl: string
+    externalUrl?: string
   }
   extendData?: {
     headers?: string[];
@@ -260,6 +274,18 @@ interface DetailRecord {
 const tasks = ref<Task[]>([])
 const page = ref({ current: 1, size: 10 })
 const total = ref(0)
+
+// 流程态相关
+const uploadedFile = ref<any>(null)
+const uploadRef = ref<any>(null)
+const isUploading = ref(false)
+const parseCompleted = ref(false)
+const flowStep = computed(() => {
+  if (isUploading.value) return 1
+  if (uploadedFile.value && !parseCompleted.value) return 1
+  if (parseCompleted.value) return 2
+  return 0
+})
 
 async function fetchTasks() {
   const res = await getExcelFileList({ page: page.value.current, size: page.value.size })
@@ -398,10 +424,7 @@ function shareTask(row: Task) {
 const editVisible = ref(false)
 const editForm = ref<Task & { searchHeaders?: string[] }>({ id: 0, name: '', status: '', startTime: '', endTime: '', excelFile: '', extendData: { headers: [], searchHeaders: [] } })
 
-// 新增上传文件状态
-const uploadedFile = ref<any>(null)
-const uploadRef = ref<any>(null)
-const isUploading = ref(false)
+// 新增上传文件状态（上移至流程态）
 
 async function saveEdit() {
   // 校验多选字段
@@ -513,6 +536,7 @@ function customUpload(option: any) {
   uploadExcelFile(file)
     .then(res => {
       uploadedFile.value = res
+      parseCompleted.value = false
       option.onSuccess && option.onSuccess(res)
     })
     .catch(err => {
@@ -536,7 +560,9 @@ async function parseExcel() {
       fileId: uploadedFile.value.fileId || uploadedFile.value.id
     })
     ElMessage.success('Excel解析成功')
-    uploadedFile.value = null // 清空上传文件状态
+    parseCompleted.value = true
+    // 保留 uploadedFile 以便用户知晓解析对应的文件；如需清空可解除下一行注释
+    // uploadedFile.value = null
     uploadRef.value?.clearFiles() // 清空文件列表
     fetchTasks() // 刷新任务列表
   } catch (error: any) {
@@ -720,8 +746,24 @@ function handleDetailSizeChange(size: number) {
 
 // 下载Excel文件
 function download(row: Task) {
-  // 这里可以添加下载Excel文件的逻辑
-  ElMessage.success('下载功能开发中...')
+  const url = row?.fileInfo?.externalUrl || row?.fileInfo?.fileUrl
+  const filename = row?.fileInfo?.fileName || 'Excel.xlsx'
+  if (!url) {
+    ElMessage.error('无可用下载地址')
+    return
+  }
+  try {
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    link.style.display = 'none'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  } catch (_e) {
+    // 回退到新窗口打开
+    window.open(url, '_blank')
+  }
 }
 </script>
 <style scoped>
@@ -772,10 +814,20 @@ function download(row: Task) {
   gap: 12px;
 }
 
-.upload-actions {
-  display: flex;
-  align-items: flex-start;
+.flow-steps {
+  margin-bottom: 8px;
+}
+
+.upload-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+  align-items: start;
+}
+
+.step-cell {
+  display: flex;
+  justify-content: center;
 }
 
 .upload-info {
