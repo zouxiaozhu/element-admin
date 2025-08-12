@@ -923,34 +923,13 @@ export default defineComponent({
 
     const downloadFile = async (file) => {
       try {
-        if (file.taskId) {
-          // 使用新的API下载文件
-          const transferId = file.transferTask ? file.transferTask.id : null;
-          const blob = await documentApi.downloadFile(file.taskId, transferId);
-          
-          // 创建blob URL
-          const url = window.URL.createObjectURL(blob);
-          
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = file.name;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          
-          // 清理blob URL
-          window.URL.revokeObjectURL(url);
-          
-          showToast('文件下载成功！');
-        } else {
           // 原有的下载方式
           const link = document.createElement('a');
-          link.href = file.url;
+          link.href = file.transferTask.fileUrl;
           link.download = file.name;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-        }
       } catch (error) {
         console.error('下载文件失败:', error);
         showToast('下载文件失败，请重试');
